@@ -5,27 +5,36 @@ var graphite = require('graphite');
 var pkg = require('./package.json');
 
 var prefix = 'test.import.';
-var graphiteUrl = 'plaintext://metrics.intranet.tradera.com:2003/';
 var dataDir = './data/';
 
 program
-  .version(pkg.version);
-
-program
-	.command('import')
-	.option('-d, --days <days>', 'Days')
-	.description('import data from data folder, duplicate data for x days')
-	.action(import_data);
-
-program
-	.command('live')
-	.description('live feed data from data folder')
-	.action(live_data);
+  .version(pkg.version)
+  .option('-g, --graphite <graphite>', 'Graphite address')
+	.option('-i, --import', 'Run import for x days')
+	.option('-l, --live', 'Live feed data')
+	.option('-d, --days <days>', 'Days');
 
 program.parse(process.argv);
 
-function import_data(options) {
-	if (!options.days) {
+if (!program.graphite) {
+	console.log('Need to specify graphite address');
+	program.help();
+	return;
+}
+
+var graphiteUrl = 'plaintext://' + program.graphite + ':2003/';
+
+if (program['import']) {
+	import_data();
+}
+
+if (program.live) {
+	live_data();
+}
+
+function import_data() {
+	if (!program.days) {
+		console.log('need to specify number of days');
 		program.help();
 	}
 
@@ -38,12 +47,12 @@ function import_data(options) {
 		var key = prefix + name;
 		var now = new Date();
 
-		console.log('Importing ' + key + ' days: ' + options.days);
+		console.log('Importing ' + key + ' days: ' + program.days);
 
 		datapoints.forEach(function(point) {
 			var value = point[0];
 
-			for (var i = 0; i < options.days; i++) {
+			for (var i = 0; i < program.days; i++) {
 				var date = new Date(point[1] * 1000);
 				date.setMonth(now.getMonth());
 				date.setDate(now.getDate() - i);
@@ -81,7 +90,7 @@ function loop_data_files(callback, pattern) {
 	});
 }
 
-function live_data(options) {
+function live_data() {
 	var metrics = {};
 
 	loop_data_files(live_feed, '.live');
