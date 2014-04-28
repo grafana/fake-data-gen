@@ -57,7 +57,7 @@ function import_data() {
 				date.setDate(now.getDate() - i);
 
 				if (date.getTime() > now.getTime()) {
-					return;
+					continue;
 				}
 
 				var metrics = {};
