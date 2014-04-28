@@ -39,7 +39,6 @@ function import_data() {
 	}
 
 	var client = graphite.createClient(graphiteUrl);
-	setTimeout(client.end, 10000);
 
 	loop_data_files(import_metric_data, '.fill');
 
