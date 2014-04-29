@@ -4,7 +4,6 @@ var path = require('path');
 var graphite = require('graphite');
 var pkg = require('./package.json');
 
-var prefix = '';
 var dataDir = './data/';
 
 program
@@ -42,29 +41,53 @@ function import_data() {
 
 	loop_data_files(import_metric_data, '.fill');
 
-	function import_metric_data(name, datapoints) {
-		var key = prefix + name;
+	function import_metric_data(name, data) {
 		var now = new Date();
 
-		console.log('Importing ' + key + ' days: ' + program.days);
+		console.log('Importing ' + name + ' days: ' + program.days);
 
-		datapoints.forEach(function(point) {
-			var value = point[0];
+		for (var dayOffset = 0; dayOffset < program.days; dayOffset++) {
 
-			for (var i = 0; i < program.days; i++) {
-				var date = new Date(point[1] * 1000);
-				date.setMonth(now.getMonth());
-				date.setDate(now.getDate() - i);
-
-				if (date.getTime() > now.getTime()) {
-					continue;
+			data.forEach(function(meta) {
+				if (meta.dayMax < dayOffset || meta.dayMin > dayOffset) {
+					return;
 				}
 
-				var metrics = {};
-				metrics[key] = value;
-				client.write(metrics, date);
-			}
-		});
+				meta.data.forEach(function(series) {
+
+					series.datapoints.forEach(function(point) {
+
+						var value = point[0];
+						var date = new Date(point[1] * 1000);
+						date.setMonth(now.getMonth());
+						date.setDate(now.getDate() - dayOffset);
+
+						if (date.getTime() > now.getTime()) {
+							return;
+						}
+
+						var key = name + '.' + series.target;
+						var metrics = {};
+
+						if (meta.intervals) {
+							for (var i = 0; i < meta.intervals.count; i++) {
+								var intervalValue = value / meta.intervals.count;
+								date.setSeconds(date.getSeconds() + meta.intervals.seconds);
+
+								metrics[key] = intervalValue;
+								client.write(metrics, date);
+							}
+						}
+						else {
+							metrics[key] = value;
+							client.write(metrics, date);
+						}
+					});
+
+				});
+
+			});
+		}
 
 		console.log('Importing done');
 	}
@@ -82,10 +105,8 @@ function loop_data_files(callback, pattern) {
 
 		var data = require(dataDir + file);
 		var metricName = file.substring(0, file.indexOf(pattern));
+		callback(metricName, data);
 
-		data.forEach(function(series) {
-			callback(metricName + '.' + series.target, series.datapoints);
-		});
 	});
 }
 
