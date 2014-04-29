@@ -1,6 +1,7 @@
 var program = require('commander');
 var fs = require('fs');
 var path = require('path');
+var _ = require('underscore');
 var graphite = require('graphite');
 var pkg = require('./package.json');
 
@@ -31,6 +32,19 @@ if (program.live) {
 	live_data();
 }
 
+function get_resolution(retention, date) {
+	var now = new Date();
+	var hours = Math.abs(now - date) / 3600000;
+
+	if (hours <= 24) {
+		return retention[0];
+	}
+	if (hours <= 168) {
+		return retention[1];
+	}
+	return retention[2];
+}
+
 function import_data() {
 	if (!program.days) {
 		console.log('need to specify number of days');
@@ -39,112 +53,140 @@ function import_data() {
 
 	var client = graphite.createClient(graphiteUrl);
 
-	loop_data_files(import_metric_data, '.fill');
+	loop_data_files(import_metric_data);
 
-	function import_metric_data(name, data) {
+	function import_metric_data(meta, series) {
 		var now = new Date();
 
-		console.log('Importing ' + name + ' days: ' + program.days);
+		var key = _.template(meta.pattern, { target: series.target });
+		var index = find_current_index(series.datapoints);
+		var currentDate = new Date();
+		var secondsPerPoint = 10;
+		var loops = 0;
+		var metric = {};
 
-		for (var dayOffset = 0; dayOffset < program.days; dayOffset++) {
+		while(true) {
+			if (index === 0) {
+				index = series.datapoints.length - 1;
+				loops++;
+			}
 
-			data.forEach(function(meta) {
-				if (meta.dayMax < dayOffset || meta.dayMin > dayOffset) {
-					return;
+			if (loops >= program.days) {
+				return;
+			}
+
+			secondsPerPoint = get_resolution(meta.retention, currentDate);
+
+			// ignore null values
+			if (series.datapoints[index][0] === null) {
+				index--;
+				currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
+				continue;
+			}
+
+			if (secondsPerPoint < meta.secondsPerPoint) {
+				var factor = meta.secondsPerPoint / secondsPerPoint;
+				for (var i = 0; i < factor; i++)	{
+					var point = series.datapoints[index];
+					var value = point[0] / factor;
+					metric[key] = value;
+					client.write(metric, currentDate);
+					currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
 				}
 
-				meta.data.forEach(function(series) {
+				index--;
+			}
+			else if (secondsPerPoint === meta.secondsPerPoint) {
+				var point = series.datapoints[index];
+				metric[key] = point[0];
+				client.write(metric, currentDate);
+				currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
+				index--;
+			}
+			else {
+				// need to aggregate points
+				var factor = secondsPerPoint / meta.secondsPerPoint;
+				var value = null;
+				for (var i = 0; i < factor; i++)	{
+					var point = series.datapoints[index];
+					if (point[0] !== null) {
+						value = (value || 0) + point[0];
+					}
+					index--;
+					if (index === 0) {
+						index = series.datapoints.length - 1;
+						loops++;
+					}
+				}
 
-					series.datapoints.forEach(function(point) {
+				if (value !== null) {
+					if (meta.aggregation === 'avg') {
+						value = value / factor;
+					}
 
-						var value = point[0];
-						var date = new Date(point[1] * 1000);
-						date.setMonth(now.getMonth());
-						date.setDate(now.getDate() - dayOffset);
+					metric[key] = value;
+					client.write(metric, currentDate);
+					currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
+				}
+			}
 
-						if (date.getTime() > now.getTime()) {
-							return;
-						}
-
-						var key = name + '.' + series.target;
-						var metrics = {};
-
-						if (meta.intervals) {
-							for (var i = 0; i < meta.intervals.count; i++) {
-								var intervalValue = value / meta.intervals.count;
-								date.setSeconds(date.getSeconds() + meta.intervals.seconds);
-
-								metrics[key] = intervalValue;
-								client.write(metrics, date);
-							}
-						}
-						else {
-							metrics[key] = value;
-							client.write(metrics, date);
-						}
-					});
-
-				});
-
-			});
 		}
-
 		console.log('Importing done');
 	}
 }
 
-function loop_data_files(callback, pattern) {
-
+function loop_data_files(callback) {
 	var files = fs.readdirSync(dataDir);
 	files.forEach(function(file) {
-		if (file.indexOf(pattern) === -1) {
+		if (file.indexOf('.json') === -1) {
 			return;
 		}
 
 		console.log('Loading file ' + file);
 
 		var data = require(dataDir + file);
-		var metricName = file.substring(0, file.indexOf(pattern));
-		callback(metricName, data);
-
+		data.data.forEach(function(series) {
+			callback(data, series);
+		});
 	});
+}
+
+function find_current_index(datapoints) {
+	var lastDiff = -1;
+	var lastIndex = 0;
+
+	// find current index
+	for (var i = 0; i < datapoints.length; i++) {
+		var point = datapoints[i];
+		var date = new Date(point[1] * 1000);
+		var now = new Date();
+
+		date.setFullYear(now.getFullYear());
+		date.setMonth(now.getMonth());
+		date.setDate(now.getDate());
+
+		var currentDiff = Math.abs(now.getTime() - date.getTime());
+		if (lastDiff !== -1 && currentDiff > lastDiff) {
+			break;
+		}
+
+		lastDiff = currentDiff;
+		lastIndex = i;
+	}
+
+	return lastIndex;
 }
 
 function live_data() {
 	var metrics = {};
 
-	loop_data_files(live_feed, '.live');
+	loop_data_files(live_feed);
 
-	function live_feed(name, datapoints) {
-		var key = prefix + name;
-
-		metrics[key] = { points: datapoints };
-
-		var lastDiff = -1;
-		var lastIndex = 0;
-
-		// find current index
-		for (var i = 0; i < datapoints.length; i++) {
-			var point = datapoints[i];
-			var date = new Date(point[1] * 1000);
-			var now = new Date();
-
-			date.setFullYear(now.getFullYear());
-			date.setMonth(now.getMonth());
-			date.setDate(now.getDate());
-
-			var currentDiff = Math.abs(now.getTime() - date.getTime());
-			if (lastDiff !== -1 && currentDiff > lastDiff) {
-				break;
-			}
-
-			lastDiff = currentDiff;
-			lastIndex = i;
-		};
-
-		metrics[key].index = lastIndex;
-		metrics[key].secondsPerPoint = metrics[key].points[1][1] - metrics[key].points[0][1];
-		console.log(key + ' secondsPerPoint: ' + metrics[key].secondsPerPoint);
+	function live_feed(meta, series) {
+		var key = _.template(meta.pattern, { target: series.target });
+		metrics[key] = { points: series.datapoints };
+		metrics[key].index = find_current_index(series.datapoints);
+		metrics[key].secondsPerPoint = meta.secondsPerPoint;
 	}
 
 	var client = graphite.createClient(graphiteUrl);
