@@ -4,7 +4,7 @@ var path = require('path');
 var graphite = require('graphite');
 var pkg = require('./package.json');
 
-var prefix = 'test.import.';
+var prefix = '';
 var dataDir = './data/';
 
 program
