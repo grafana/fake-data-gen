@@ -213,7 +213,10 @@ function live_data() {
 				var data = {};
 				data[key] = current[0];
 
-				console.log('sending: ' + key + ' value: ' + current[0]);
+				if (program.debug) {
+					console.log('sending: ' + key + ' value: ' + current[0]);
+				}
+
 				client.write(data);
 			}
 
@@ -227,22 +230,4 @@ function live_data() {
 	}, 1000);
 
 }
-
-/*setInterval(function() {
-
-	counter += Math.random() * 10 - 5;
-
-	var metrics = { highres: { test: counter } };
-
-	sdc.increment('prod.apps.myfake.counter', counter); // Increment by one.
-	sdc.increment('test.apps.myfake.counter', counter); // Increment by one.
-	sdc.timing('prod.apps.myfake.timer', counter + (Math.random() * 100) - 50); // Calculates time diff
-
-	client.write(metrics, function(err) {
-	  if (err) {
-	  	console.log('failed to write to graphite');
-	  }
-	});
-
-}, 1000);*/
 
