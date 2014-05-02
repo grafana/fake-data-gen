@@ -1,5 +1,5 @@
 {
-	"pattern": "apps.fakesite.<%= target %>.requests_all.count",
+	"pattern": "apps.fakesite.<%= target %>.counters.requests.count",
 	"retention": [10, 60, 600],
 	"secondsPerPoint": 10,
 	"aggregation": "sum",

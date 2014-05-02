@@ -63,11 +63,13 @@ function import_data() {
 		var currentDate = new Date();
 		var secondsPerPoint = 10;
 		var loops = 0;
+		var direction = -1;
+		var pointCount = series.datapoints.length;
 		var metric = {};
 
 		while(true) {
-			if (index === 0) {
-				index = series.datapoints.length - 1;
+			if (index === 0 || index === (pointCount - 1)) {
+				direction = direction * -1;
 				loops++;
 			}
 
@@ -79,7 +81,7 @@ function import_data() {
 
 			// ignore null values
 			if (series.datapoints[index][0] === null) {
-				index--;
+				index = index + direction;
 				currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
 				continue;
 			}
@@ -94,14 +96,14 @@ function import_data() {
 					currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
 				}
 
-				index--;
+				index = index + direction;
 			}
 			else if (secondsPerPoint === meta.secondsPerPoint) {
 				var point = series.datapoints[index];
 				metric[key] = point[0];
 				client.write(metric, currentDate);
 				currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
-				index--;
+				index = index + direction;
 			}
 			else {
 				// need to aggregate points
@@ -112,9 +114,9 @@ function import_data() {
 					if (point[0] !== null) {
 						value = (value || 0) + point[0];
 					}
-					index--;
-					if (index === 0) {
-						index = series.datapoints.length - 1;
+					index = index + direction;
+					if (index === 0 || index === (pointCount - 1)) {
+						direction = direction * -1;
 						loops++;
 					}
 				}
@@ -187,6 +189,7 @@ function live_data() {
 		metrics[key] = { points: series.datapoints };
 		metrics[key].index = find_current_index(series.datapoints);
 		metrics[key].secondsPerPoint = meta.secondsPerPoint;
+		metrics[key].direction = 1;
 	}
 
 	var client = graphite.createClient(graphiteUrl);
@@ -221,9 +224,9 @@ function live_data() {
 			}
 
 			metric.timestamp = new Date();
-			metric.index = metric.index + 1;
-			if (metric.index >= metric.points.length) {
-				metric.index = 0;
+			metric.index = metric.index + metric.direction;
+			if (metric.index >= (metric.points.length - 1)) {
+				metric.direction = metric.direction * -1;
 			}
 		}
 
