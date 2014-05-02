@@ -68,8 +68,9 @@ function import_data() {
 		var metric = {};
 
 		while(true) {
-			if (index === 0 || index === (pointCount - 1)) {
+			if (index === -1 || index === pointCount) {
 				direction = direction * -1;
+				index = index + direction;
 				loops++;
 			}
 
@@ -114,9 +115,12 @@ function import_data() {
 					if (point[0] !== null) {
 						value = (value || 0) + point[0];
 					}
+
 					index = index + direction;
-					if (index === 0 || index === (pointCount - 1)) {
+
+					if (index === -1 || index === pointCount) {
 						direction = direction * -1;
+						index = index + direction;
 						loops++;
 					}
 				}
@@ -225,8 +229,10 @@ function live_data() {
 
 			metric.timestamp = new Date();
 			metric.index = metric.index + metric.direction;
-			if (metric.index >= (metric.points.length - 1)) {
+
+			if (metric.index === -1 || metric.index === metric.points.length) {
 				metric.direction = metric.direction * -1;
+				metric.index = metric.index + metric.direction;
 			}
 		}
 
