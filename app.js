@@ -22,7 +22,7 @@ if (!program.graphite) {
 	return;
 }
 
-var graphiteUrl = 'plaintext://' + program.graphite + ':2003/';
+var graphiteUrl = 'plaintext://' + program.graphite;
 
 if (program['import']) {
 	import_data();
