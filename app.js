@@ -22,7 +22,7 @@ if (!program.graphite) {
 	return;
 }
 
-var graphiteUrl = 'plaintext://' + program.graphite + ':2003/';
+var graphiteUrl = 'plaintext://' + program.graphite;
 
 if (program['import']) {
 	import_data();
@@ -131,7 +131,11 @@ function import_data() {
 					}
 
 					metric[key] = value;
-					client.write(metric, currentDate);
+					client.write(metric, currentDate, function(err) {
+					  if (err) {
+					    console.log('error' + err)
+					  }
+					});
 					currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
 				}
 			}
