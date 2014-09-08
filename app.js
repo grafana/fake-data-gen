@@ -12,6 +12,7 @@ program
   .option('-g, --graphite <graphite>', 'Graphite address')
 	.option('-i, --import', 'Run import for x days')
 	.option('-l, --live', 'Live feed data')
+	.option('-o, --opentsdb', 'Live feed data in to opentsdb')
 	.option('-d, --days <days>', 'Days');
 
 program.parse(process.argv);
@@ -30,6 +31,10 @@ if (program['import']) {
 
 if (program.live) {
 	live_data();
+}
+
+if (program.opentsdb) {
+  live_opentsdb();
 }
 
 function get_resolution(retention, date) {
@@ -200,17 +205,35 @@ function live_data() {
 		metrics[key].direction = 1;
 	}
 
+  _.each(['dc_eu', 'dc_us', 'dc_asia'], function(datacenter) {
+    for (var i = 0; i < 200; i++) {
+      var server = String(i);
+      server = "000".substring(0, 3 - server.length) + server;
+      metrics["servers." + datacenter + '.server_' + server + '.requests.count'] = {
+        index: 0,
+        secondsPerPoint: 10,
+        direction: 0,
+        points: [[1000]],
+        randomWalk: true
+      };
+    }
+  });
+
 	var client = graphite.createClient(graphiteUrl);
 
 	setInterval(function() {
 
-		for (key in metrics) {
+		for (var key in metrics) {
 			if (!metrics.hasOwnProperty(key)) {
 				continue;
 			}
 
 			var metric = metrics[key];
 			var current = metric.points[metric.index];
+
+			if (metric.randomWalk) {
+        current[0] += (Math.random() * 100) - (100 / 2);
+			}
 
 			// check if it is time to send next value
 			if (metric.timestamp) {
@@ -244,3 +267,37 @@ function live_data() {
 
 }
 
+function live_opentsdb() {
+  Nopents = require('nopents');
+
+  client = new Nopents({
+    host: 'localhost',
+    port: 4242
+  });
+
+  var data = {};
+
+  function randomWalk(name, start, variation) {
+    if (!data[name]) {
+      data[name] = start;
+    }
+
+    data[name] += (Math.random() * variation) - (variation / 2);
+
+    client.send([
+      {
+        key: name,
+        val: data[name],
+        tags: {
+          source: 'counter',
+          hostname: 'thor'
+        }
+      }
+    ]);
+    console.log("writing opentsdb metric: " + name);
+  }
+
+  setInterval(function() {
+    randomWalk('my.data.point', 100, 2);
+  }, 1000);
+}
