@@ -1,7 +1,7 @@
 var program = require('commander');
 var fs = require('fs');
 var path = require('path');
-var _ = require('underscore');
+var _ = require('lodash');
 var graphite = require('graphite');
 var pkg = require('./package.json');
 
@@ -206,7 +206,7 @@ function live_data() {
 	}
 
   _.each(['dc_eu', 'dc_us', 'dc_asia'], function(datacenter) {
-    for (var i = 0; i < 200; i++) {
+    for (var i = 0; i < 50; i++) {
       var server = String(i);
       server = "000".substring(0, 3 - server.length) + server;
       metrics["servers." + datacenter + '.server_' + server + '.requests.count'] = {
