@@ -17,12 +17,6 @@ program
 
 program.parse(process.argv);
 
-if (!program.graphite) {
-	console.log('Need to specify graphite address');
-	program.help();
-	return;
-}
-
 var graphiteUrl = 'plaintext://' + program.graphite;
 
 if (program['import']) {
@@ -205,11 +199,11 @@ function live_data() {
 		metrics[key].direction = 1;
 	}
 
-  _.each(['dc_eu', 'dc_us', 'dc_asia'], function(datacenter) {
-    for (var i = 0; i < 50; i++) {
+  _.each(['dc=eu', 'dc=us', 'dc=asia'], function(datacenter) {
+    for (var i = 0; i < 1; i++) {
       var server = String(i);
       server = "000".substring(0, 3 - server.length) + server;
-      metrics["servers." + datacenter + '.server_' + server + '.requests.count'] = {
+      metrics["servers." + datacenter + '.5.12.123.5.' + server + '.requests.count'] = {
         index: 0,
         secondsPerPoint: 10,
         direction: 0,
@@ -268,36 +262,36 @@ function live_data() {
 }
 
 function live_opentsdb() {
-  Nopents = require('nopents');
-
-  client = new Nopents({
-    host: 'localhost',
-    port: 4242
-  });
-
+  var restify = require('restify');
+  var client = restify.createJsonClient({ url: 'http://localhost:4242' });
   var data = {};
 
-  function randomWalk(name, start, variation) {
+  function randomWalk(name, tags, start, variation) {
     if (!data[name]) {
       data[name] = start;
     }
 
     data[name] += (Math.random() * variation) - (variation / 2);
 
-    client.send([
-      {
-        key: name,
-        val: data[name],
-        tags: {
-          source: 'counter',
-          hostname: 'thor'
-        }
-      }
-    ]);
-    console.log("writing opentsdb metric: " + name);
+    client.post('/api/put', {
+        metric: name,
+        timestamp: new Date().getTime(),
+        value: data[name],
+        tags: tags
+    }, function(err, res) {
+      console.log("writing opentsdb metric: " + err);
+    });
   }
 
   setInterval(function() {
-    randomWalk('my.data.point', 100, 2);
-  }, 1000);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server3' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server4' }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server1' }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+  }, 10000);
 }
