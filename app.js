@@ -13,6 +13,7 @@ program
 	.option('-i, --import', 'Run import for x days')
 	.option('-l, --live', 'Live feed data')
 	.option('-o, --opentsdb', 'Live feed data in to opentsdb')
+	.option('--influxdb', 'Live feed data into to influxdb')
 	.option('-d, --days <days>', 'Days');
 
 program.parse(process.argv);
@@ -29,6 +30,10 @@ if (program.live) {
 
 if (program.opentsdb) {
   live_opentsdb();
+}
+
+if (program.influxdb) {
+  live_influxdb();
 }
 
 function get_resolution(retention, date) {
@@ -280,6 +285,59 @@ function live_opentsdb() {
         tags: tags
     }, function(err, res) {
       console.log("writing opentsdb metric: " + err);
+    });
+  }
+
+  setInterval(function() {
+    randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server3' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server4' }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server1' }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+  }, 1000);
+}
+
+function live_influxdb() {
+  var restify = require('restify');
+  var client = restify.createJsonClient({ url: 'http://localhost:8086' });
+  var data = {};
+
+  client.get('/query?q=' + encodeURIComponent('CREATE DATABASE site'), function(err, res) {
+    console.log("CREATE site DATABASE\n\t" + err);
+  });
+
+  client.get('/query?q=' + encodeURIComponent('CREATE RETENTION POLICY bar ON site DURATION 1h REPLICATION 1 DEFAULT'), function(err, res) {
+    console.log("CREATE RETENTION POLICY\n\t" + err);
+  });
+
+  function randomWalk(name, tags, start, variation) {
+    if (!data[name]) {
+      data[name] = start;
+    }
+
+    data[name] += (Math.random() * variation) - (variation / 2);
+
+    client.post('/write', {
+      "database": "site",
+      "points": [
+        {
+          "name": name,
+          "tags": tags,
+          "timestamp": new Date().getTime(),
+          "precision": "ms",
+          "fields": {
+            "value": data[name]
+          }
+        }
+      ]
+    }, function(err, res) {
+      if (err) {
+        console.log("writing influxdb metric error: " + err);
+      }
     });
   }
 
