@@ -1,8 +1,8 @@
 var program = require('commander');
+var graphite = require('graphite');
 var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
-var graphite = require('graphite');
 var pkg = require('./package.json');
 
 var dataDir = './data/';
@@ -205,10 +205,10 @@ function live_data() {
 	}
 
   _.each(['dc=eu', 'dc=us', 'dc=asia'], function(datacenter) {
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 100; i++) {
       var server = String(i);
       server = "000".substring(0, 3 - server.length) + server;
-      metrics["servers." + datacenter + '.5.12.123.5.' + server + '.requests.count'] = {
+      metrics["servers." + server + '.requests.count'] = {
         index: 0,
         secondsPerPoint: 10,
         direction: 0,
