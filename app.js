@@ -298,7 +298,7 @@ function live_opentsdb() {
     randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
-  }, 1000);
+  }, 10000);
 }
 
 function live_influxdb() {
