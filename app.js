@@ -14,6 +14,7 @@ program
 	.option('-l, --live', 'Live feed data')
 	.option('-o, --opentsdb', 'Live feed data in to opentsdb')
 	.option('--influxdb', 'Live feed data into to influxdb')
+	.option('--kairosdb', 'Live feed data into to kairosdb')
 	.option('-d, --days <days>', 'Days');
 
 program.parse(process.argv);
@@ -34,6 +35,10 @@ if (program.opentsdb) {
 
 if (program.influxdb) {
   live_influxdb();
+}
+
+if (program.kairosdb) {
+  live_kairosdb();
 }
 
 function get_resolution(retention, date) {
@@ -337,6 +342,43 @@ function live_influxdb() {
     }, function(err, res) {
       if (err) {
         console.log("writing influxdb metric error: " + err);
+      }
+    });
+  }
+
+  setInterval(function() {
+    randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server3' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server4' }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server1' }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+  }, 10000);
+}
+
+function live_kairosdb() {
+  var restify = require('restify');
+  var client = restify.createJsonClient({ url: 'http://localhost:8280' });
+  var data = {};
+
+  function randomWalk(name, tags, start, variation) {
+    if (!data[name]) {
+      data[name] = start;
+    }
+
+    data[name] += (Math.random() * variation) - (variation / 2);
+
+    client.post('/api/v1/datapoints', [{
+      "name": name,
+      "timestamp": new Date().getTime(),
+      "value": data[name],
+      "tags": tags,
+    }], function(err, res) {
+      if (err) {
+        console.log("writing kariosdb metric error: " + err);
       }
     });
   }
