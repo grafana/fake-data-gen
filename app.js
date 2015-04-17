@@ -210,7 +210,7 @@ function live_data() {
 	}
 
   _.each(['dc=eu', 'dc=us', 'dc=asia'], function(datacenter) {
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 0; i++) {
       var server = String(i);
       server = "000".substring(0, 3 - server.length) + server;
       metrics["servers." + datacenter + '.5.12.123.5.' + server + '.requests.count'] = {
