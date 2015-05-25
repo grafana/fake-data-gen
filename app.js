@@ -353,15 +353,21 @@ function live_influxdb() {
   }
 
   setInterval(function() {
-    randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server3' }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server4' }, 100, 2);
-    randomWalk('logins.count', { source: 'site', hostname: 'server1' }, 100, 2);
-    randomWalk('logins.count', { source: 'site', hostname: 'server2' }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server1', datacenter: "America" }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server2', datacenter: "America"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server3', datacenter: "Europe"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server4', datacenter: "Europe"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server5', datacenter: "Asia"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server7', datacenter: "Africa"}, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server1', datacenter: "America" }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server2', datacenter: "America" }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server1', datacenter: "America" }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2', datacenter: "America" }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2', datacenter: "America" }, 100, 2);
+    randomWalk('payment.started', { source: 'frontend', hostname: 'server2', datacenter: "America" }, 1000, 5);
+    randomWalk('payment.started', { source: 'frontend', hostname: 'server1', datacenter: "America"  }, 1000, 5);
+    randomWalk('payment.ended', { source: 'frontend', hostname: 'server1', datacenter: "America"  }, 1000, 5);
+    randomWalk('payment.ended', { source: 'frontend', hostname: 'server1', datacenter: "America"  }, 1000, 5);
   }, 10000);
 }
 
