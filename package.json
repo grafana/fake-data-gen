@@ -14,6 +14,7 @@
     "lodash": "^2.4.1",
     "nopents": "^0.1.4",
     "opentsdb": "^0.1.0",
+    "restify": "^3.0.3",
     "underscore": "^1.6.0"
   }
 }

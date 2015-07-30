@@ -14,6 +14,7 @@ program
 	.option('-l, --live', 'Live feed data')
 	.option('-o, --opentsdb', 'Live feed data in to opentsdb')
 	.option('--influxdb', 'Live feed data into to influxdb')
+	.option('--kairosdb', 'Live feed data into to kairosdb')
 	.option('-d, --days <days>', 'Days');
 
 program.parse(process.argv);
@@ -39,6 +40,10 @@ if (program.influxdb) {
 process.on('uncaughtException', function(err) {
   console.log('Caught exception: ' + err);
 });
+
+if (program.kairosdb) {
+  live_kairosdb();
+}
 
 function get_resolution(retention, date) {
 	var now = new Date();
@@ -211,7 +216,7 @@ function live_data() {
 	}
 
   _.each(['dc=eu', 'dc=us', 'dc=asia'], function(datacenter) {
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 0; i++) {
       var server = String(i);
       server = "000".substring(0, 3 - server.length) + server;
       metrics["servers." + server + '.requests.count'] = {
@@ -304,12 +309,12 @@ function live_opentsdb() {
     randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
-  }, 1000);
+  }, 10000);
 }
 
 function live_influxdb() {
   var restify = require('restify');
-  var client = restify.createJsonClient({ url: 'http://localhost:8086' });
+  var client = restify.createJsonClient({ url: 'http://localhost:9086' });
   var data = {};
 
   client.get('/query?q=' + encodeURIComponent('CREATE DATABASE site'), function(err, res) {
@@ -343,6 +348,43 @@ function live_influxdb() {
     }, function(err, res) {
       if (err) {
         console.log("writing influxdb metric error: " + err);
+      }
+    });
+  }
+
+  setInterval(function() {
+    randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server3' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server4' }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server1' }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+  }, 10000);
+}
+
+function live_kairosdb() {
+  var restify = require('restify');
+  var client = restify.createJsonClient({ url: 'http://localhost:8280' });
+  var data = {};
+
+  function randomWalk(name, tags, start, variation) {
+    if (!data[name]) {
+      data[name] = start;
+    }
+
+    data[name] += (Math.random() * variation) - (variation / 2);
+
+    client.post('/api/v1/datapoints', [{
+      "name": name,
+      "timestamp": new Date().getTime(),
+      "value": data[name],
+      "tags": tags,
+    }], function(err, res) {
+      if (err) {
+        console.log("writing kariosdb metric error: " + err);
       }
     });
   }
