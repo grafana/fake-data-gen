@@ -336,7 +336,7 @@ function live_influxdb() {
       "database": "site",
       "points": [
         {
-          "name": name,
+          "measurement": name,
           "tags": tags,
           "timestamp": new Date().getTime(),
           "precision": "ms",
