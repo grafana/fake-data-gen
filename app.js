@@ -1,8 +1,8 @@
 var program = require('commander');
+var graphite = require('graphite');
 var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
-var graphite = require('graphite');
 var pkg = require('./package.json');
 
 var dataDir = './data/';
@@ -41,6 +41,10 @@ if (program.kairosdb) {
   live_kairosdb();
 }
 
+process.on('uncaughtException', function(err) {
+  console.log('Caught exception: ' + err);
+});
+
 function get_resolution(retention, date) {
 	var now = new Date();
 	var hours = Math.abs(now - date) / 3600000;
@@ -75,6 +79,7 @@ function import_data() {
 		var direction = -1;
 		var pointCount = series.datapoints.length;
 		var metric = {};
+		var point, value, i, factor;
 
 		while(true) {
 			if (index === -1 || index === pointCount) {
@@ -97,10 +102,10 @@ function import_data() {
 			}
 
 			if (secondsPerPoint < meta.secondsPerPoint) {
-				var factor = meta.secondsPerPoint / secondsPerPoint;
-				for (var i = 0; i < factor; i++)	{
-					var point = series.datapoints[index];
-					var value = point[0] / factor;
+				factor = meta.secondsPerPoint / secondsPerPoint;
+				for (i = 0; i < factor; i++)	{
+					point = series.datapoints[index];
+					value = point[0] / factor;
 					metric[key] = value;
 					client.write(metric, currentDate);
 					currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
@@ -109,7 +114,7 @@ function import_data() {
 				index = index + direction;
 			}
 			else if (secondsPerPoint === meta.secondsPerPoint) {
-				var point = series.datapoints[index];
+				point = series.datapoints[index];
 				metric[key] = point[0];
 				client.write(metric, currentDate);
 				currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
@@ -117,10 +122,10 @@ function import_data() {
 			}
 			else {
 				// need to aggregate points
-				var factor = secondsPerPoint / meta.secondsPerPoint;
-				var value = null;
-				for (var i = 0; i < factor; i++)	{
-					var point = series.datapoints[index];
+				factor = secondsPerPoint / meta.secondsPerPoint;
+				value = null;
+				for (i = 0; i < factor; i++)	{
+					point = series.datapoints[index];
 					if (point[0] !== null) {
 						value = (value || 0) + point[0];
 					}
@@ -142,7 +147,7 @@ function import_data() {
 					metric[key] = value;
 					client.write(metric, currentDate, function(err) {
 					  if (err) {
-					    console.log('error' + err)
+					    console.log('error' + err);
 					  }
 					});
 					currentDate.setSeconds(currentDate.getSeconds() - secondsPerPoint);
@@ -198,6 +203,7 @@ function find_current_index(datapoints) {
 
 function live_data() {
 	var metrics = {};
+	console.log('Feeding live data');
 
 	loop_data_files(live_feed);
 
@@ -213,7 +219,7 @@ function live_data() {
     for (var i = 0; i < 0; i++) {
       var server = String(i);
       server = "000".substring(0, 3 - server.length) + server;
-      metrics["servers." + datacenter + '.5.12.123.5.' + server + '.requests.count'] = {
+      metrics["servers." + server + '.requests.count'] = {
         index: 0,
         secondsPerPoint: 10,
         direction: 0,
@@ -252,7 +258,7 @@ function live_data() {
 				data[key] = current[0];
 
 				if (program.debug) {
-					console.log('sending: ' + key + ' value: ' + current[0]);
+          console.log('sending: ' + key + ' value: ' + current[0]);
 				}
 
 				client.write(data);
@@ -330,7 +336,7 @@ function live_influxdb() {
       "database": "site",
       "points": [
         {
-          "name": name,
+          "measurement": name,
           "tags": tags,
           "timestamp": new Date().getTime(),
           "precision": "ms",
