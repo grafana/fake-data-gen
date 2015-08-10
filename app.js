@@ -317,12 +317,17 @@ function live_influxdb() {
   var client = restify.createJsonClient({ url: 'http://localhost:9086' });
   var data = {};
 
-  client.get('/query?q=' + encodeURIComponent('CREATE DATABASE site'), function(err, res) {
-    console.log("CREATE site DATABASE\n\t" + err);
-  });
+  client.basicAuth('grafana', 'grafana');
+  client.get('/query?q=' + encodeURIComponent("CREATE USER grafana WITH PASSWORD 'grafana' WITH ALL PRIVILEGES"), function(err, res) {
+    console.log("CREATE USER\n\t" + err);
 
-  client.get('/query?q=' + encodeURIComponent('CREATE RETENTION POLICY bar ON site DURATION 1h REPLICATION 1 DEFAULT'), function(err, res) {
-    console.log("CREATE RETENTION POLICY\n\t" + err);
+    client.get('/query?q=' + encodeURIComponent('CREATE DATABASE site'), function(err, res) {
+      console.log("CREATE site DATABASE\n\t" + err);
+    });
+
+    client.get('/query?q=' + encodeURIComponent('CREATE RETENTION POLICY bar ON site DURATION 1h REPLICATION 1 DEFAULT'), function(err, res) {
+      console.log("CREATE RETENTION POLICY\n\t" + err);
+    });
   });
 
   function randomWalk(name, tags, start, variation) {
