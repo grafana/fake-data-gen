@@ -4,6 +4,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 var pkg = require('./package.json');
+var elasticData = require('./elastic_data');
 
 var dataDir = './data/';
 
@@ -15,6 +16,7 @@ program
 	.option('-o, --opentsdb', 'Live feed data in to opentsdb')
 	.option('--influxdb', 'Live feed data into to influxdb')
 	.option('--kairosdb', 'Live feed data into to kairosdb')
+	.option('--elasticsearch', 'Live feed data into to kairosdb')
 	.option('-d, --days <days>', 'Days');
 
 program.parse(process.argv);
@@ -39,6 +41,10 @@ if (program.influxdb) {
 
 if (program.kairosdb) {
   live_kairosdb();
+}
+
+if (program.elasticsearch) {
+  elasticData.live();
 }
 
 process.on('uncaughtException', function(err) {
@@ -346,7 +352,8 @@ function live_influxdb() {
           "timestamp": new Date().getTime(),
           "precision": "ms",
           "fields": {
-            "value": data[name]
+            "value": data[name],
+            "one-minute": data[name],
           }
         }
       ]
@@ -358,6 +365,8 @@ function live_influxdb() {
   }
 
   setInterval(function() {
+    randomWalk('logins.count', { source: 'backend', hostname: '10.1.100.1', datacenter: "America" }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: '10.1.100.10', datacenter: "America" }, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server1', datacenter: "America" }, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server2', datacenter: "America"}, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server3', datacenter: "Europe"}, 100, 2);
