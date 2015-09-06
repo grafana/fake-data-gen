@@ -12,6 +12,7 @@
     "commander": "~2.2.0",
     "graphite": "0.0.6",
     "lodash": "^2.4.1",
+    "moment": "^2.10.6",
     "nopents": "^0.1.4",
     "opentsdb": "^0.1.0",
     "restify": "^3.0.3",

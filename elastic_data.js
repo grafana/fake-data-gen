@@ -1,11 +1,34 @@
 var _ = require('underscore');
+var moment = require('moment');
 
 function liveFeedToLogstash() {
   console.log('Starting Elasticsearch Data Sender')
 
-  var net = require('net');
-  var client = new net.Socket();
+  var restify = require('restify');
+  var client = restify.createJsonClient({ url: 'http://localhost:9200' });
   var data = {};
+
+  // set template
+  console.log('Updating metrics mapping template');
+
+  client.put('/_template/metrics', {
+    "template" : "metrics-*",
+    "settings" : { "number_of_shards" : 1, "number_of_replicas": 0 },
+    "mappings" : {
+        "metric" : {
+          "_source" : { "enabled" : false },
+          "_type" : {"index" : "no"},
+
+          "properties": {
+            "@value": {type: 'float', },
+            "@timestamp": {type: 'date', },
+          }
+        }
+    }
+  }, function(err) {
+    console.log('template mapping res:', err)
+  });
+
 
   function randomWalk(name, tags, start, variation) {
     if (!data[name]) {
@@ -14,19 +37,20 @@ function liveFeedToLogstash() {
 
     data[name] += (Math.random() * variation) - (variation / 2);
     var message = {
+      "@timestamp": new Date(),
       "@value": data[name],
-      "@mtags": tags,
     }
 
     _.each(tags, function(value, key) {
       message['@' + key] = value;
     });
 
-    client.write(JSON.stringify(message) + '\n');
+    client.post('/metrics-' + moment().format('YYYY-MM-DD') + '/metric', message, function(err) {
+      if (err) {
+        console.log('Metric write error', err);
+      }
+    });
   }
-
-  client.connect(5000, '127.0.0.1', function() {
-  });
 
   setInterval(function() {
     randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2);
