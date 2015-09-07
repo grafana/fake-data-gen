@@ -15,15 +15,29 @@ function liveFeedToLogstash() {
     "template" : "metrics-*",
     "settings" : { "number_of_shards" : 1, "number_of_replicas": 0 },
     "mappings" : {
-        "metric" : {
-          "_source" : { "enabled" : false },
-          "_type" : {"index" : "no"},
+      "metric" : {
+        "_all" : {"enabled" : false},
+        "_source" : { "enabled" : false },
+        "_type" : {"index" : "no"},
 
-          "properties": {
-            "@value": {type: 'float', },
-            "@timestamp": {type: 'date', },
+        "properties": {
+          "@value": {type: 'float', },
+          "@timestamp": {type: 'date', },
+        },
+
+        "dynamic_templates": [
+          {
+            "strings": {
+              "match_mapping_type": "string",
+              "mapping": {
+                "type": "string",
+                "index" : "not_analyzed",
+                "omit_norms" : true,
+              }
+            }
           }
-        }
+        ]
+      }
     }
   }, function(err) {
     console.log('template mapping res:', err)
@@ -37,6 +51,7 @@ function liveFeedToLogstash() {
 
     data[name] += (Math.random() * variation) - (variation / 2);
     var message = {
+      "@metric": name,
       "@timestamp": new Date(),
       "@value": data[name],
     }
@@ -45,7 +60,7 @@ function liveFeedToLogstash() {
       message['@' + key] = value;
     });
 
-    client.post('/metrics-' + moment().format('YYYY-MM-DD') + '/metric', message, function(err) {
+    client.post('/metrics2-' + moment().format('YYYY.MM.DD') + '/metric', message, function(err) {
       if (err) {
         console.log('Metric write error', err);
       }
