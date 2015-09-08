@@ -60,7 +60,7 @@ function liveFeedToLogstash() {
       message['@' + key] = value;
     });
 
-    client.post('/metrics2-' + moment().format('YYYY.MM.DD') + '/metric', message, function(err) {
+    client.post('/metrics-test' + moment().format('YYYY.MM.DD') + '/metric', message, function(err) {
       if (err) {
         console.log('Metric write error', err);
       }
