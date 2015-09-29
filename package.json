@@ -15,6 +15,7 @@
     "moment": "^2.10.6",
     "nopents": "^0.1.4",
     "opentsdb": "^0.1.0",
+    "prometheus-client": "^0.1.1",
     "restify": "^3.0.3",
     "underscore": "^1.6.0"
   }

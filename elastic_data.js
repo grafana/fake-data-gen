@@ -73,7 +73,7 @@ function liveFeedToLogstash() {
     randomWalk('logins.count', { source: 'backend', hostname: 'server3' }, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server4' }, 100, 2);
     randomWalk('logins.count', { source: 'site', hostname: 'server1' }, 100, 2);
-    randomWalk('logins.count', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server 20' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
