@@ -2,7 +2,7 @@ var _ = require('lodash');
 
 function live() {
   var restify = require('restify');
-  var client = restify.createJsonClient({ url: 'http://localhost:8086' });
+  var client = restify.createJsonClient({ url: 'http://localhost:9086' });
   var data = {};
 
   client.basicAuth('grafana', 'grafana');

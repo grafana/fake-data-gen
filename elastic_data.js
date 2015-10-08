@@ -17,8 +17,10 @@ function liveFeedToLogstash() {
     "mappings" : {
       "metric" : {
         "_all" : {"enabled" : false},
-        "_source" : { "enabled" : false },
-        "_type" : {"index" : "no"},
+        "_source" : {"enabled" : false },
+        "_type" : {"index" : "no", "store": false},
+        "_id" : {"index" : "no", "store" : false},
+        "_index" : { "enabled" : false },
 
         "properties": {
           "@value": {type: 'float', },
@@ -60,7 +62,7 @@ function liveFeedToLogstash() {
       message['@' + key] = value;
     });
 
-    client.post('/metrics-test' + moment().format('YYYY.MM.DD') + '/metric', message, function(err) {
+    client.post('/metrics-' + moment().format('YYYY.MM.DD') + '/metric', message, function(err) {
       if (err) {
         console.log('Metric write error', err);
       }
