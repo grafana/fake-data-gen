@@ -2,10 +2,10 @@ var _ = require('underscore');
 var moment = require('moment');
 
 function liveFeedToLogstash() {
-  console.log('Starting Elasticsearch Data Sender')
+  console.log('Starting Elasticsearch Data Sender');
 
   var restify = require('restify');
-  var client = restify.createJsonClient({ url: 'http://localhost:9200' });
+  var client = restify.createJsonClient({ url: 'http://localhost:9300' });
   var data = {};
 
   // set template
@@ -42,7 +42,7 @@ function liveFeedToLogstash() {
       }
     }
   }, function(err) {
-    console.log('template mapping res:', err)
+    console.log('template mapping res:', err);
   });
 
 
@@ -56,7 +56,7 @@ function liveFeedToLogstash() {
       "@metric": name,
       "@timestamp": new Date(),
       "@value": data[name],
-    }
+    };
 
     _.each(tags, function(value, key) {
       message['@' + key] = value;
