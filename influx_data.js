@@ -46,6 +46,34 @@ function live() {
     });
   }
 
+  var logCount = 0;
+  function writeLogEntry() {
+    logCount++;
+    console.log('Writing influxdb log entry');
+    client.post('/write', {
+      "database": "site",
+      "points": [
+        {
+          "measurement": 'logs',
+          "tags": {'type': 'deploy', 'server': 'server-01'},
+          "timestamp": new Date().getTime(),
+          "precision": "ms",
+          "fields": {
+            "message": 'deployed app',
+            "description": 'influxdb log entry: ' + logCount,
+            "more": 'more text',
+          }
+        }
+      ]
+    }, function(err, res) {
+      if (err) {
+        console.log("writing influxdb log error: " + err);
+      }
+    });
+
+    setTimeout(writeLogEntry, Math.random() * 900000);
+  }
+
   setInterval(function() {
     randomWalk('logins.count', { source: 'backend', hostname: '10.1.100.1', datacenter: "America" }, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: '10.1.100.10', datacenter: "America" }, 100, 2);
@@ -65,6 +93,8 @@ function live() {
     randomWalk('payment.ended', { source: 'frontend', hostname: 'server1', datacenter: "America"  }, 1000, 5);
     randomWalk('payment.ended', { source: 'frontend', hostname: 'server1', datacenter: "America"  }, 1000, 5);
   }, 10000);
+
+  writeLogEntry();
 }
 
 module.exports = {

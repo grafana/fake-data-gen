@@ -69,6 +69,24 @@ function liveFeedToLogstash() {
     });
   }
 
+  function writeLogEntry() {
+    var message = {
+      "@message": 'Deployed website',
+      "@timestamp": new Date(),
+      "tags": ['deploy', 'website-01'],
+      "description": "Torkel deployed website",
+    };
+
+    console.log('Writing elastic log entry');
+    client.post('/logs-' + moment().format('YYYY.MM.DD') + '/log', message, function(err) {
+      if (err) {
+        console.log('Log write error', err);
+      }
+    });
+
+    setTimeout(writeLogEntry, Math.random() * 900000);
+  }
+
   setInterval(function() {
     randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2);
@@ -81,6 +99,8 @@ function liveFeedToLogstash() {
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
   }, 10000);
 
+  writeLogEntry();
+  setTimeout(writeLogEntry, Math.random() * 900000);
 }
 
 module.exports = {
