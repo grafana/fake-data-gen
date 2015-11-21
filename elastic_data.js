@@ -75,6 +75,7 @@ function liveFeedToLogstash() {
       "@timestamp": new Date(),
       "tags": ['deploy', 'website-01'],
       "description": "Torkel deployed website",
+      "long": "asdsaa asdas dasdas dasdasdas asdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa asdasdasdasdasdasdas asd",
     };
 
     console.log('Writing elastic log entry');
@@ -92,6 +93,7 @@ function liveFeedToLogstash() {
     randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server3' }, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server4' }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server-5' }, 100, 2);
     randomWalk('logins.count', { source: 'site', hostname: 'server1' }, 100, 2);
     randomWalk('logins.count', { source: 'site', hostname: 'server 20' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
