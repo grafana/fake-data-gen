@@ -18,13 +18,10 @@ function liveFeedToLogstash() {
       "metric" : {
         "_all" : {"enabled" : false},
         "_source" : {"enabled" : false },
-        "_type" : {"index" : "no", "store": false},
-        "_id" : {"index" : "no", "store" : false},
-        "_index" : { "enabled" : false },
 
         "properties": {
           "@value": {type: 'float', },
-          "@timestamp": {type: 'date', },
+          "@timestamp": {type: 'date', "format": "epoch_millis" },
         },
 
         "dynamic_templates": [
@@ -54,7 +51,7 @@ function liveFeedToLogstash() {
     data[name] += (Math.random() * variation) - (variation / 2);
     var message = {
       "@metric": name,
-      "@timestamp": new Date(),
+      "@timestamp": new Date().getTime(),
       "@value": data[name],
     };
 
@@ -72,9 +69,10 @@ function liveFeedToLogstash() {
   function writeLogEntry() {
     var message = {
       "@message": 'Deployed website',
-      "@timestamp": new Date(),
+      "@timestamp": new Date().getTime(),
       "tags": ['deploy', 'website-01'],
       "description": "Torkel deployed website",
+      "coordinates": {'latitude':  12, 'longitude': 121, level: {depth: 3, coolnes: 'very'}},
       "long": "asdsaa asdas dasdas dasdasdas asdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa asdasdasdasdasdasdas asd",
     };
 

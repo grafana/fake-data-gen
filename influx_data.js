@@ -13,9 +13,27 @@ function live() {
       console.log("CREATE site DATABASE\n\t" + err);
     });
 
-    client.get('/query?q=' + encodeURIComponent('CREATE RETENTION POLICY bar ON site DURATION 1h REPLICATION 1 DEFAULT'), function(err, res) {
+    client.get('/query?q=' + encodeURIComponent('CREATE RETENTION POLICY bar ON site DURATION 1d REPLICATION 1 DEFAULT'), function(err, res) {
       console.log("CREATE RETENTION POLICY\n\t" + err);
     });
+
+    client.get('/query?q=' + encodeURIComponent('CREATE RETENTION POLICY "5mn_avg" ON site DURATION 100d REPLICATION 1'), function(err, res) {
+      console.log("CREATE RETENTION POLICY\n\t" + err);
+    });
+
+    var cq = `CREATE CONTINUOUS QUERY "5mn_avg"
+                ON site
+                BEGIN
+                SELECT mean(value) as value
+                INTO "5mn_avg".:measurement
+                FROM /.*/
+                GROUP BY time(5m), *
+                END`
+
+    client.get('/query?q=' + encodeURIComponent(cq), function(err, res) {
+      console.log("CREATE ROLLUP CQ\n\t" + err);
+    });
+
   });
 
   function randomWalk(name, tags, start, variation) {
