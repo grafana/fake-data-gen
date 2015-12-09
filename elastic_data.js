@@ -48,7 +48,12 @@ function liveFeedToLogstash() {
       data[name] = start;
     }
 
+    if (tags.derivative) {
+      data[name] += data[name];
+    }
+
     data[name] += (Math.random() * variation) - (variation / 2);
+
     var message = {
       "@metric": name,
       "@timestamp": new Date().getTime(),
@@ -97,6 +102,7 @@ function liveFeedToLogstash() {
     randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+    randomWalk('increasing.counter', { source: 'site', hostname: 'server2', derivative: "true"}, 100, 2);
   }, 10000);
 
   writeLogEntry();
