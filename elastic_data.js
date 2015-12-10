@@ -6,7 +6,9 @@ function liveFeedToLogstash() {
 
   var restify = require('restify');
   var client = restify.createJsonClient({ url: 'http://localhost:9300' });
-  var data = {};
+  var data = {
+    derivative: 0,
+  };
 
   // set template
   console.log('Updating metrics mapping template');
@@ -48,10 +50,6 @@ function liveFeedToLogstash() {
       data[name] = start;
     }
 
-    if (tags.derivative) {
-      data[name] += data[name];
-    }
-
     data[name] += (Math.random() * variation) - (variation / 2);
 
     var message = {
@@ -63,6 +61,22 @@ function liveFeedToLogstash() {
     _.each(tags, function(value, key) {
       message['@' + key] = value;
     });
+
+    client.post('/metrics-' + moment().format('YYYY.MM.DD') + '/metric', message, function(err) {
+      if (err) {
+        console.log('Metric write error', err);
+      }
+    });
+  }
+
+  function derivativeTest() {
+    data.derivative += 100;
+
+    var message = {
+      "@metric": 'derivative',
+      "@timestamp": new Date().getTime(),
+      "@value": data.derivative,
+    };
 
     client.post('/metrics-' + moment().format('YYYY.MM.DD') + '/metric', message, function(err) {
       if (err) {
@@ -101,8 +115,8 @@ function liveFeedToLogstash() {
     randomWalk('logins.count', { source: 'site', hostname: 'server 20' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
-    randomWalk('increasing.counter', { source: 'site', hostname: 'server2', derivative: "true"}, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 20);
+    derivativeTest();
   }, 10000);
 
   writeLogEntry();
