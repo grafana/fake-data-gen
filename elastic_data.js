@@ -1,11 +1,10 @@
-var _ = require('underscore');
-var moment = require('moment');
+var _ = require('underscore'); var moment = require('moment');
 
 function liveFeedToLogstash() {
   console.log('Starting Elasticsearch Data Sender');
 
   var restify = require('restify');
-  var client = restify.createJsonClient({ url: 'http://localhost:9300' });
+  var client = restify.createJsonClient({ url: 'http://localhost:9200' });
   var data = {
     derivative: 0,
   };
@@ -115,7 +114,7 @@ function liveFeedToLogstash() {
     randomWalk('logins.count', { source: 'site', hostname: 'server 20' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 20);
+    randomWalk('erratic', { source: 'site', hostname: 'server2' }, 100, 20);
     derivativeTest();
   }, 10000);
 
