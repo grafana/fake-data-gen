@@ -19,19 +19,35 @@ function live() {
       console.log("CREATE RETENTION POLICY\n\t" + err);
     });
 
-    client.get('/query?q=' + encodeURIComponent('CREATE RETENTION POLICY "5mn_avg" ON site DURATION 100d REPLICATION 1'), function(err, res) {
+    client.get('/query?q=' + encodeURIComponent('CREATE RETENTION POLICY "1m_avg" ON site DURATION 10d REPLICATION 1'), function(err, res) {
       console.log("CREATE RETENTION POLICY\n\t" + err);
     });
 
-    var cq = `CREATE CONTINUOUS QUERY "5mn_avg"
+    client.get('/query?q=' + encodeURIComponent('CREATE RETENTION POLICY "5m_avg" ON site DURATION 100d REPLICATION 1'), function(err, res) {
+      console.log("CREATE RETENTION POLICY\n\t" + err);
+    });
+
+    var cq = `CREATE CONTINUOUS QUERY "1m_avg"
                 ON site
                 BEGIN
                 SELECT mean(value) as value
-                INTO "5mn_avg".:measurement
+                INTO "1m_avg".:measurement
+                FROM /.*/
+                GROUP BY time(1m), *
+                END`;
+
+    client.get('/query?q=' + encodeURIComponent(cq), function(err, res) {
+      console.log("CREATE ROLLUP CQ\n\t" + err);
+    });
+
+    cq = `CREATE CONTINUOUS QUERY "5m_avg"
+                ON site
+                BEGIN
+                SELECT mean(value) as value
+                INTO "5m_avg".:measurement
                 FROM /.*/
                 GROUP BY time(5m), *
                 END`
-
     client.get('/query?q=' + encodeURIComponent(cq), function(err, res) {
       console.log("CREATE ROLLUP CQ\n\t" + err);
     });
