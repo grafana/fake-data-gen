@@ -55,6 +55,7 @@ function liveFeedToLogstash() {
       "@metric": name,
       "@timestamp": new Date().getTime(),
       "@value": data[name],
+      "@tags": tags
     };
 
     _.each(tags, function(value, key) {
