@@ -93,6 +93,7 @@ function liveFeedToLogstash() {
       "description": "Torkel deployed website",
       "coordinates": {'latitude':  12, 'longitude': 121, level: {depth: 3, coolnes: 'very'}},
       "long": "asdsaa asdas dasdas dasdasdas asdaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa asdasdasdasdasdasdas asd",
+      "unescaped-content": "breaking <br /> the <br /> row",
     };
 
     console.log('Writing elastic log entry');
