@@ -120,6 +120,7 @@ function live() {
             "message": 'deployed app',
             "description": 'influxdb log entry: ' + logCount,
             "more": 'more text',
+            "unescaped": "breaking <br /> the <br /> row <br />",
           }
         }
       ]
