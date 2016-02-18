@@ -6,17 +6,19 @@ var _ = require('lodash');
 var pkg = require('./package.json');
 var elasticData = require('./elastic_data');
 var influxData = require('./influx_data');
+var influxData08 = require('./influx_data08');
 var promData = require('./prom_data');
 
 var dataDir = './data/';
 
 program
   .version(pkg.version)
-  .option('-g, --graphite <graphite>', 'Graphite address')
+        .option('-g, --graphite <graphite>', 'Graphite address')
 	.option('-i, --import', 'Run import for x days')
 	.option('-l, --live', 'Live feed data')
 	.option('-o, --opentsdb', 'Live feed data in to opentsdb')
 	.option('--influxdb', 'Live feed data into to influxdb')
+        .option('--influxdb08', 'Live feed data into to influxdb08')
 	.option('--kairosdb', 'Live feed data into to kairosdb')
 	.option('--elasticsearch', 'Live feed data into to kairosdb')
 	.option('--prom', 'Live feed data into to kairosdb')
@@ -44,6 +46,10 @@ if (program.prom) {
 
 if (program.influxdb) {
   influxData.live();
+}
+
+if (program.influxdb08) {
+  influxData08.live();
 }
 
 if (program.kairosdb) {
