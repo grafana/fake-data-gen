@@ -139,8 +139,8 @@ function live() {
     randomWalk('logins.count', { source: 'backend', hostname: 'server2', datacenter: "America"}, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server3', datacenter: "Europe"}, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server4', datacenter: "Europe"}, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server5', datacenter: "Asia"}, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server7', datacenter: "Africa"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server\\5', datacenter: "Asia"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server/7', datacenter: "Africa"}, 100, 2);
     randomWalk('logins.count', { source: 'site', hostname: 'server1', datacenter: "America" }, 100, 2);
     randomWalk('logins.count', { source: 'site', hostname: 'server2', datacenter: "America" }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server1', datacenter: "America" }, 100, 2);
