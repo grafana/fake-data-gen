@@ -120,7 +120,9 @@ function live() {
             "message": 'deployed app',
             "description": 'influxdb log entry: ' + logCount,
             "more": 'more text',
+            "tags_csv": "deploy,server1",
             "unescaped": "breaking <br /> the <br /> row <br />",
+            "detail": "For more see <a href='http://google.com' target='_blank'>Incident Report</a>",
           }
         }
       ]
