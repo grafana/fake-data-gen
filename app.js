@@ -21,7 +21,7 @@ program
         .option('--influxdb08', 'Live feed data into to influxdb08')
 	.option('--kairosdb', 'Live feed data into to kairosdb')
 	.option('--elasticsearch', 'Live feed data into to kairosdb')
-	.option('--prom', 'Live feed data into to kairosdb')
+	.option('--prom', 'Live feed data into to prometheus')
 	.option('-d, --days <days>', 'Days');
 
 program.parse(process.argv);
