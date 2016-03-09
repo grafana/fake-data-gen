@@ -318,6 +318,16 @@ function live_opentsdb() {
     });
   }
 
+  function writeAnnotation(description, notes) {
+    client.post('/api/annotation', {
+      startTime: new Date().getTime() / 1000,
+      description: description,
+      notes: notes
+    }, function(err, res) {
+      console.log("writing opentsdb annotation: " + err);
+    });
+  }
+
   setInterval(function() {
     randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2);
@@ -328,6 +338,7 @@ function live_opentsdb() {
     randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
     randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
+    writeAnnotation('global annotation', 'this is a global opentsdb annotation');
   }, 10000);
 }
 
