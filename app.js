@@ -8,6 +8,7 @@ var elasticData = require('./elastic_data');
 var influxData = require('./influx_data');
 var influxData08 = require('./influx_data08');
 var promData = require('./prom_data');
+var grafanaLive = require('./grafana_live');
 
 var dataDir = './data/';
 
@@ -22,6 +23,7 @@ program
 	.option('--kairosdb', 'Live feed data into to kairosdb')
 	.option('--elasticsearch', 'Live feed data into to kairosdb')
 	.option('--prom', 'Live feed data into to kairosdb')
+	.option('--grafanaLive', 'Grafana Live Data')
 	.option('-d, --days <days>', 'Days');
 
 program.parse(process.argv);
@@ -42,6 +44,10 @@ if (program.opentsdb) {
 
 if (program.prom) {
   promData.live();
+}
+
+if (program.grafanaLive) {
+  grafanaLive.live();
 }
 
 if (program.influxdb) {
