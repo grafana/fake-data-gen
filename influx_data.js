@@ -3,9 +3,9 @@ var _ = require('lodash');
 function live() {
   var restify = require('restify');
   var client = restify.createJsonClient({ url: 'http://localhost:8086' });
-  var data = {
-    derivative: 0,
-  };
+  var data = { derivative: 0 };
+
+  var influxClient = require('influx')({ host : 'localhost', username : 'grafana', password : 'grafana', database : 'site' });
 
   client.basicAuth('grafana', 'grafana');
   client.get('/query?q=' + encodeURIComponent("CREATE USER grafana WITH PASSWORD 'grafana' WITH ALL PRIVILEGES"), function(err, res) {
@@ -60,23 +60,9 @@ function live() {
 
     data[name] += (Math.random() * variation) - (variation / 2);
 
-    client.post('/write', {
-      "database": "site",
-      "points": [
-        {
-          "measurement": name,
-          "tags": tags,
-          "timestamp": new Date().getTime(),
-          "precision": "ms",
-          "fields": {
-            "value": data[name],
-            "one-minute": data[name],
-          }
-        }
-      ]
-    }, function(err, res) {
+    influxClient.writePoint(name, { value: data[name] }, tags, function(err, res) {
       if (err) {
-        console.log("writing influxdb metric error: " + err);
+        console.log("randomWalk: ", err);
       }
     });
   }
@@ -84,22 +70,9 @@ function live() {
   function derivativeTest() {
     data.derivative += 100;
 
-    client.post('/write', {
-      "database": "site",
-      "points": [
-        {
-          "measurement": 'derivative',
-          "tags": {},
-          "timestamp": new Date().getTime(),
-          "precision": "ms",
-          "fields": {
-            "value": data.derivative,
-          }
-        }
-      ]
-    }, function(err, res) {
+    influxClient.writePoint("derivative", { value: data.derivative }, {}, function(err, res) {
       if (err) {
-        console.log("writing influxdb metric error: " + err);
+        console.log("derivativeTest: ", err);
       }
     });
   }
@@ -107,28 +80,20 @@ function live() {
   var logCount = 0;
   function writeLogEntry() {
     logCount++;
-    console.log('Writing influxdb log entry');
-    client.post('/write', {
-      "database": "site",
-      "points": [
-        {
-          "measurement": 'logs',
-          "tags": {'type': 'deploy', 'server': 'server-01'},
-          "timestamp": new Date().getTime(),
-          "precision": "ms",
-          "fields": {
-            "message": 'deployed app',
-            "description": 'influxdb log entry: ' + logCount,
-            "more": 'more text',
-            "tags_csv": "deploy,server1",
-            "unescaped": "breaking <br /> the <br /> row <br />",
-            "detail": "For more see <a href='http://google.com' target='_blank'>Incident Report</a>",
-          }
-        }
-      ]
-    }, function(err, res) {
+
+    var tags = {'type': 'deploy', 'server': 'server-01'};
+    var values = {
+      "message": 'deployed app',
+      "description": 'influxdb log entry: ' + logCount,
+      "more": 'more text',
+      "tags_csv": "deploy,server1",
+      "unescaped": "breaking <br /> the <br /> row <br />",
+      "detail": "For more see <a href='http://google.com' target='_blank'>Incident Report</a>",
+    };
+
+    influxClient.writePoint('logs', values, tags, function(err, res) {
       if (err) {
-        console.log("writing influxdb log error: " + err);
+        console.log("writeLogEntry: ", err);
       }
     });
 
