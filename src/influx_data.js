@@ -1,11 +1,12 @@
 var _ = require('lodash');
 
-function live() {
+function live(server, port) {
+  console.log('connecting to ' + server + ' : ' + port);
   var restify = require('restify');
-  var client = restify.createJsonClient({ url: 'http://localhost:8086' });
+  var client = restify.createJsonClient({ url: 'http://' + server +':' + port });
   var data = { derivative: 0 };
 
-  var influxClient = require('influx')({ host : 'localhost', username : 'grafana', password : 'grafana', database : 'site' });
+  var influxClient = require('influx')({ port: port, host : server, username : 'grafana', password : 'grafana', database : 'site' });
 
   client.basicAuth('grafana', 'grafana');
   client.get('/query?q=' + encodeURIComponent("CREATE USER grafana WITH PASSWORD 'grafana' WITH ALL PRIVILEGES"), function(err, res) {

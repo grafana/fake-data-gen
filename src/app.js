@@ -14,9 +14,11 @@ var dataDir = './data/';
 
 program
   .version(pkg.version)
-        .option('-g, --graphite <graphite>', 'Graphite address')
+        .option('-g, --graphite', 'Graphite address')
 	.option('-i, --import', 'Run import for x days')
 	.option('-l, --live', 'Live feed data')
+  .option('-s, --server <server>', 'destination server')
+  .option('-p, --port <port>', 'destination port')
 	.option('-o, --opentsdb', 'Live feed data in to opentsdb')
 	.option('--influxdb', 'Live feed data into to influxdb')
   .option('--influxdb08', 'Live feed data into to influxdb08')
@@ -28,7 +30,9 @@ program
 
 program.parse(process.argv);
 
-var graphiteUrl = 'plaintext://' + program.graphite;
+var graphiteUrl = 'plaintext://' + program.server;
+
+program.server = program.server || 'localhost';
 
 if (program['import']) {
 	import_data();
@@ -51,7 +55,7 @@ if (program.grafanaLive) {
 }
 
 if (program.influxdb) {
-  influxData.live();
+  influxData.live(program.server, program.port);
 }
 
 if (program.influxdb08) {
