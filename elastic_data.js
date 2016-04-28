@@ -23,6 +23,11 @@ function liveFeedToLogstash() {
         "properties": {
           "@value": {type: 'float', },
           "@timestamp": {type: 'date', "format": "epoch_millis" },
+          "location": {
+            "type":               "geo_point",
+            "geohash_prefix":     true, 
+            "geohash_precision":  "1km" 
+          }
         },
 
         "dynamic_templates": [
@@ -55,7 +60,8 @@ function liveFeedToLogstash() {
       "@metric": name,
       "@timestamp": new Date().getTime(),
       "@value": data[name],
-      "@tags": tags
+      "@tags": tags,
+      "location": generateRandomPoint({lat: Math.random() * 50, lon: Math.random() * 50}, 100)
     };
 
     _.each(tags, function(value, key) {
@@ -67,6 +73,26 @@ function liveFeedToLogstash() {
         console.log('Metric write error', err);
       }
     });
+  }
+  
+  function generateRandomPoint(center, radius) {
+    var x0 = center.lon;
+    var y0 = center.lat;
+    // Convert Radius from meters to degrees.
+    var rd = radius/111300;
+
+    var u = Math.random();
+    var v = Math.random();
+
+    var w = rd * Math.sqrt(u);
+    var t = 2 * Math.PI * v;
+    var x = w * Math.cos(t);
+    var y = w * Math.sin(t);
+
+    var xp = x/Math.cos(y0);
+
+    // Resulting point.
+    return (y+y0) + ', ' + (xp+x0);
   }
 
   function derivativeTest() {
