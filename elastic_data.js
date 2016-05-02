@@ -23,10 +23,10 @@ function liveFeedToLogstash() {
         "properties": {
           "@value": {type: 'float', },
           "@timestamp": {type: 'date', "format": "epoch_millis" },
-          "location": {
+          "@location": {
             "type":               "geo_point",
-            "geohash_prefix":     true, 
-            "geohash_precision":  "1km" 
+            "geohash_prefix":     true,
+            "geohash_precision":  "1km"
           }
         },
 
@@ -61,7 +61,7 @@ function liveFeedToLogstash() {
       "@timestamp": new Date().getTime(),
       "@value": data[name],
       "@tags": tags,
-      "location": generateRandomPoint({lat: Math.random() * 50, lon: Math.random() * 50}, 100)
+      "@location": generateRandomPoint({lat: Math.random() * 50, lon: Math.random() * 50}, 100)
     };
 
     _.each(tags, function(value, key) {
@@ -74,7 +74,7 @@ function liveFeedToLogstash() {
       }
     });
   }
-  
+
   function generateRandomPoint(center, radius) {
     var x0 = center.lon;
     var y0 = center.lat;
