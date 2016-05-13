@@ -308,7 +308,7 @@ function live_data() {
 
 function live_opentsdb() {
   var restify = require('restify');
-  var client = restify.createJsonClient({ url: 'http://localhost:4242' });
+  var client = restify.createJsonClient({ url: 'http://' + program.server + ':4242' });
   var data = {};
 
   function randomWalk(name, tags, start, variation) {
