@@ -1,10 +1,11 @@
 var _ = require('underscore'); var moment = require('moment');
 
-function liveFeedToLogstash() {
+function liveFeedToLogstash(program) {
   console.log('Starting Elasticsearch Data Sender');
 
   var restify = require('restify');
-  var client = restify.createJsonClient({ url: 'http://localhost:9200' });
+  var uri = "http://" + program.server + ":" + program.port;
+  var client = restify.createJsonClient({ url: uri });
   var data = {
     derivative: 0,
   };

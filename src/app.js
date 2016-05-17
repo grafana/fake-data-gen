@@ -67,7 +67,7 @@ if (program.kairosdb) {
 }
 
 if (program.elasticsearch) {
-  elasticData.live();
+  elasticData.live(program);
 }
 
 process.on('uncaughtException', function(err) {
