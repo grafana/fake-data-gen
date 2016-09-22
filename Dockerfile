@@ -1,4 +1,4 @@
-FROM node:argon
+FROM node:6.6.0
 
 COPY ./src /usr/src/fake-data-gen
 WORKDIR /usr/src/fake-data-gen
