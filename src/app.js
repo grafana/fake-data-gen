@@ -31,7 +31,7 @@ program
 
 program.parse(process.argv);
 
-var graphiteUrl = 'plaintext://' + program.server;
+var graphiteUrl = 'plaintext://' + program.server + ":" + program.port;
 
 program.server = program.server || 'localhost';
 
