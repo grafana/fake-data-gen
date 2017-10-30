@@ -11,40 +11,56 @@ function liveFeedToLogstash(program) {
   };
 
   console.log('Updating metrics mapping template');
- -
-  client.put('/_template/metrics', {
-    "template" : "metrics-*",
-    "settings" : { "number_of_shards" : 1, "number_of_replicas": 0 },
-    "mappings" : {
-      "metric" : {
-        "_all" : {"enabled" : false},
-        "_source" : {"enabled" : false },
-        "properties": {
-          "@value": {type: 'float', },
-          "@timestamp": {type: 'date', "format": "epoch_millis" },
-          "@location": {
-            "type":               "geo_point",
-            "geohash_prefix":     true,
-            "geohash_precision":  "1km"
-          }
-        },
-        "dynamic_templates": [
-          {
-            "strings": {
-              "match_mapping_type": "string",
-              "mapping": {
-                "type": "string",
-                "index" : "not_analyzed",
-                "omit_norms" : true,
+
+  tryToConnect(createIndex);
+
+  function tryToConnect(callback) {
+    client.get('/', function(err, req, res, obj) {
+      if (err) {
+        console.log(err);
+        var func = _.partial(tryToConnect, callback);
+        setTimeout(func, 3000);
+      } else {
+        callback();
+      }
+    });
+  }
+
+  function createIndex() {
+    client.put('/_template/metrics', {
+      "template" : "metrics-*",
+      "settings" : { "number_of_shards" : 1, "number_of_replicas": 0 },
+      "mappings" : {
+        "metric" : {
+          "_all" : {"enabled" : false},
+          "_source" : {"enabled" : false },
+          "properties": {
+            "@value": {type: 'float', },
+            "@timestamp": {type: 'date', "format": "epoch_millis" },
+            "@location": {
+              "type":               "geo_point",
+              "geohash_prefix":     true,
+              "geohash_precision":  "1km"
+            }
+          },
+          "dynamic_templates": [
+            {
+              "strings": {
+                "match_mapping_type": "string",
+                "mapping": {
+                  "type": "string",
+                  "index" : "not_analyzed",
+                  "omit_norms" : true,
+                }
               }
             }
-          }
-        ]
+          ]
+        }
       }
-    }
-  }, function(err) {
-    console.log('template mapping res:', err);
-  });
+    }, function(err) {
+      console.log('template mapping res:', err);
+    });
+  }
 
   function randomWalk(name, tags, start, variation) {
     if (!data[name]) {
