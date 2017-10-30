@@ -35,11 +35,11 @@ var graphiteUrl = 'plaintext://' + program.server + ":" + program.port;
 
 program.server = program.server || 'localhost';
 
-if (program.import) {
+if (program.import && program.graphite) {
   import_data(program.graphiteVersion);
 }
 
-if (program.live) {
+if (program.live && program.graphite) {
   live_data(program.graphiteVersion);
 }
 
