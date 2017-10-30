@@ -25,7 +25,7 @@ program
   .option('--influxdb08', 'Live feed data into to influxdb08')
   .option('--kairosdb', 'Live feed data into to kairosdb')
   .option('--elasticsearch', 'Live feed data into to elasticsearch')
-  .option('--prom', 'Live feed data into to kairosdb')
+  .option('--prom', 'Live feed data into to prometheus')
   .option('--grafanaLive', 'Grafana Live Data')
   .option('-d, --days <days>', 'Days');
 
