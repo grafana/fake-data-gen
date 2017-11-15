@@ -24,8 +24,6 @@ function liveFeedToLogstash(program) {
           "@timestamp": {type: 'date', "format": "epoch_millis" },
           "@location": {
             "type":               "geo_point",
-            "geohash_prefix":     true,
-            "geohash_precision":  "1km"
           }
         },
         "dynamic_templates": [
