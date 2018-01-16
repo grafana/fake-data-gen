@@ -1,5 +1,5 @@
 {
-	"pattern": "apps.backend-tagged.counters.requests.count;target=<%= target %>;env=production",
+	"pattern": "requests.count;server=<%= target %>;env=production;app=backend",
 	"retention": [10, 60, 600],
 	"secondsPerPoint": 10,
 	"aggregation": "sum",
