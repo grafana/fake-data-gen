@@ -14,11 +14,15 @@
     "influx": "^5.0.7",
     "lodash": "^2.4.1",
     "moment": "^2.10.6",
+    "mysql2": "^1.5.1",
     "nopents": "^0.1.4",
     "opentsdb": "^0.1.0",
+    "pg": "^6.4.2",
+    "pg-hstore": "^2.3.2",
     "prometheus-client": "^0.1.1",
     "request": "^2.69.0",
     "restify": "^3.0.3",
+    "sequelize": "^4.32.1",
     "underscore": "^1.6.0"
   }
 }
