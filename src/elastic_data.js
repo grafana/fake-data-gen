@@ -1,9 +1,39 @@
-var _ = require('underscore'); var moment = require('moment');
+var _ = require('underscore');
+var moment = require('moment');
+var restify = require('restify');
+
+var NEXT_ATTEMPT_TIMEOUT = 3000;
+var ES_METRICS_TEMPLATE = {
+  "template" : "metrics-*",
+  "settings" : { "number_of_shards" : 1, "number_of_replicas": 0 },
+  "mappings" : {
+    "metric" : {
+      "_all" : { "enabled" : false},
+      "_source" : { "enabled" : false },
+      "properties": {
+        "@value":     { "type": 'float', },
+        "@timestamp": { "type": 'date', "format": "epoch_millis" },
+        "@location":  { "type": "geo_point"}
+      },
+      "dynamic_templates": [
+        {
+          "strings": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "index" : "not_analyzed",
+              "omit_norms" : true,
+            }
+          }
+        }
+      ]
+    }
+  }
+};
 
 function liveFeedToLogstash(program) {
   console.log('Starting Elasticsearch Data Sender');
 
-  var restify = require('restify');
   var uri = "http://" + program.server + ":" + program.port;
   var client = restify.createJsonClient({ url: uri });
   var data = {
@@ -11,40 +41,37 @@ function liveFeedToLogstash(program) {
   };
 
   console.log('Updating metrics mapping template');
- -
-  client.put('/_template/metrics', {
-    "template" : "metrics-*",
-    "settings" : { "number_of_shards" : 1, "number_of_replicas": 0 },
-    "mappings" : {
-      "metric" : {
-        "_all" : {"enabled" : false},
-        "_source" : {"enabled" : false },
-        "properties": {
-          "@value": {type: 'float', },
-          "@timestamp": {type: 'date', "format": "epoch_millis" },
-          "@location": {
-            "type":               "geo_point",
-          }
-        },
-        "dynamic_templates": [
-          {
-            "strings": {
-              "match_mapping_type": "string",
-              "mapping": {
-                "type": "string",
-                "index" : "not_analyzed",
-                "omit_norms" : true,
-              }
-            }
-          }
-        ]
-      }
-    }
-  }, function(err) {
-    console.log('template mapping res:', err);
-  });
+  tryToConnect(createIndexCallback, NEXT_ATTEMPT_TIMEOUT);
 
-  function randomWalk(name, tags, start, variation) {
+  function tryToConnect(callback, timeout) {
+    client.get('/', function(err, req, res, obj) {
+      if (err) {
+        console.log("Error connecting ES, waiting for " + NEXT_ATTEMPT_TIMEOUT/1000 + " sec\n", err);
+        var connectAgain = _.partial(tryToConnect, callback, timeout);
+        setTimeout(connectAgain, timeout);
+      } else {
+        console.log("Successfully connected to ES");
+        callback();
+      }
+    });
+  }
+
+  function createIndexCallback() {
+    createIndex(feedData);
+  }
+
+  function createIndex(feedDataCallback) {
+    client.put('/_template/metrics', ES_METRICS_TEMPLATE, function(err, req, res, obj) {
+      if (err) {
+        console.log('template mapping error:', err);
+      } else {
+        console.log('template created');
+        feedDataCallback();
+      }
+    });
+  }
+
+  function randomWalk(name, tags, start, variation, recoveryCallback) {
     if (!data[name]) {
       data[name] = start;
     }
@@ -66,8 +93,9 @@ function liveFeedToLogstash(program) {
     client.post('/metrics-' + moment().format('YYYY.MM.DD') + '/metric', message, function(err) {
       if (err) {
         console.log('Metric write error', err);
+        recoveryCallback();
       } else {
-        console.log('success!');
+        console.log('Metric "' + name + '" written successfully');
       }
     });
   }
@@ -92,7 +120,7 @@ function liveFeedToLogstash(program) {
     return (y+y0) + ', ' + (xp+x0);
   }
 
-  function derivativeTest() {
+  function derivativeTest(recoveryCallback) {
     data.derivative += 100;
 
     var message = {
@@ -104,11 +132,14 @@ function liveFeedToLogstash(program) {
     client.post('/metrics-' + moment().format('YYYY.MM.DD') + '/metric', message, function(err) {
       if (err) {
         console.log('Metric write error', err);
+        recoveryCallback();
+      } else {
+        console.log('Metric "derivative" written successfully');
       }
     });
   }
 
-  function writeLogEntry() {
+  function writeLogEntry(recoveryCallback) {
     var message = {
       "@message": 'Deployed website',
       "@timestamp": new Date().getTime(),
@@ -123,29 +154,42 @@ function liveFeedToLogstash(program) {
     client.post('/logs-' + moment().format('YYYY.MM.DD') + '/log', message, function(err) {
       if (err) {
         console.log('Log write error', err);
+        recoveryCallback();
       }
     });
-
-    setTimeout(writeLogEntry, Math.random() * 900000);
   }
 
-  setInterval(function() {
-    randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server3' }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server/4' }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server-5' }, 100, 2);
-    randomWalk('logins.count', { source: 'site', hostname: 'server1' }, 100, 2);
-    randomWalk('logins.count', { source: 'site', hostname: 'server 20' }, 100, 2);
-    randomWalk('logins.count', { source: 'site', hostname: 'server"21' }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2);
-    randomWalk('erratic', { source: 'site', hostname: 'server2' }, 100, 20);
-    derivativeTest();
-  }, 10000);
+  function feedData() {
+    console.log('Starting data feeding');
 
-  writeLogEntry();
-  setTimeout(writeLogEntry, Math.random() * 900000);
+    var randomWalkID = setInterval(function() {
+      randomWalk('logins.count', { source: 'backend', hostname: 'server1' }, 100, 2, recoveryCallback);
+      randomWalk('logins.count', { source: 'backend', hostname: 'server2' }, 100, 2, recoveryCallback);
+      randomWalk('logins.count', { source: 'backend', hostname: 'server3' }, 100, 2, recoveryCallback);
+      randomWalk('logins.count', { source: 'backend', hostname: 'server/4' }, 100, 2, recoveryCallback);
+      randomWalk('logins.count', { source: 'backend', hostname: 'server-5' }, 100, 2, recoveryCallback);
+      randomWalk('logins.count', { source: 'site', hostname: 'server1' }, 100, 2, recoveryCallback);
+      randomWalk('logins.count', { source: 'site', hostname: 'server 20' }, 100, 2, recoveryCallback);
+      randomWalk('logins.count', { source: 'site', hostname: 'server"21' }, 100, 2, recoveryCallback);
+      randomWalk('cpu', { source: 'site', hostname: 'server1' }, 100, 2, recoveryCallback);
+      randomWalk('cpu', { source: 'site', hostname: 'server2' }, 100, 2, recoveryCallback);
+      randomWalk('erratic', { source: 'site', hostname: 'server2' }, 100, 20, recoveryCallback);
+      derivativeTest(recoveryCallback);
+    }, 10000);
+
+    var writeLogEntryID = setInterval(function() {
+      writeLogEntry(recoveryCallback);
+    }, Math.random() * 900000);
+
+    var recoveryCallback = _.once(recoveryAction);
+    function recoveryAction() {
+      console.log('Running recovery action');
+      // Stop feeding data
+      clearInterval(randomWalkID);
+      clearInterval(writeLogEntryID);
+      tryToConnect(createIndexCallback, NEXT_ATTEMPT_TIMEOUT);
+    }
+  }
 }
 
 module.exports = {
