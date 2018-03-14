@@ -1,4 +1,7 @@
-var _ = require('underscore'); var moment = require('moment');
+var _ = require('underscore');
+var moment = require('moment');
+
+var NEXT_ATTEMPT_TIMEOUT = 3000;
 
 function liveFeedToLogstash(program) {
   console.log('Starting Elasticsearch Data Sender');
@@ -11,14 +14,14 @@ function liveFeedToLogstash(program) {
   };
 
   console.log('Updating metrics mapping template');
-  tryToConnect(createIndex);
+  tryToConnect(createIndex, NEXT_ATTEMPT_TIMEOUT);
 
-  function tryToConnect(callback) {
+  function tryToConnect(callback, timeout) {
     client.get('/', function(err, req, res, obj) {
       if (err) {
         console.log(err);
         var func = _.partial(tryToConnect, callback);
-        setTimeout(func, 3000);
+        setTimeout(func, timeout);
       } else {
         callback();
       }
