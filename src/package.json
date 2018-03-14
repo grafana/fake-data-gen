@@ -22,7 +22,8 @@
     "prometheus-client": "^0.1.1",
     "request": "^2.69.0",
     "restify": "^3.0.3",
-    "sequelize": "^4.32.1",
+    "sequelize": "^4.36.1",
+    "tedious": "^2.3.1",
     "underscore": "^1.6.0"
   }
 }

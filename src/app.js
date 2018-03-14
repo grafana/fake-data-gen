@@ -15,19 +15,20 @@ var dataDir = './data/';
 
 program
   .version(pkg.version)
-        .option('-g, --graphite', 'Graphite address')
+  .option('-g, --graphite', 'Graphite address')
   .option('-i, --import', 'Run import for x days')
   .option('-l, --live', 'Live feed data')
   .option('-s, --server <server>', 'destination server')
   .option('-p, --port <port>', 'destination port')
-  .option('-o, --opentsdb', 'Live feed data in to opentsdb')
-  .option('--influxdb', 'Live feed data into to influxdb')
-  .option('--influxdb08', 'Live feed data into to influxdb08')
-  .option('--kairosdb', 'Live feed data into to kairosdb')
-  .option('--elasticsearch', 'Live feed data into to kairosdb')
-  .option('--prom', 'Live feed data into to kairosdb')
-  .option('--mysql', 'Live feed data into to mysql')
-  .option('--postgres', 'Live feed data into to postgresql')
+  .option('-o, --opentsdb', 'Live feed data to opentsdb')
+  .option('--influxdb', 'Live feed data to influxdb')
+  .option('--influxdb08', 'Live feed data to influxdb08')
+  .option('--kairosdb', 'Live feed data to kairosdb')
+  .option('--elasticsearch', 'Live feed data to kairosdb')
+  .option('--prom', 'Live feed data to kairosdb')
+  .option('--mysql', 'Live feed data to mysql')
+  .option('--postgres', 'Live feed data to postgresql')
+  .option('--mssql', 'Live feed data to mssql')
   .option('--grafanaLive', 'Grafana Live Data')
   .option('-d, --days <days>', 'Days');
 
@@ -88,6 +89,15 @@ if (program.postgres) {
     db: 'grafana',
     user: 'grafana',
     pwd: 'password'
+  });
+}
+
+if (program.mssql) {
+  sqlData.live(program, {
+    dialect: 'mssql',
+    db: 'grafana',
+    user: 'grafana',
+    pwd: 'Password!'
   });
 }
 
