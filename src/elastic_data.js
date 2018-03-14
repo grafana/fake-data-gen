@@ -11,7 +11,6 @@ function liveFeedToLogstash(program) {
   };
 
   console.log('Updating metrics mapping template');
-
   tryToConnect(createIndex);
 
   function tryToConnect(callback) {
@@ -37,11 +36,7 @@ function liveFeedToLogstash(program) {
           "properties": {
             "@value": {type: 'float', },
             "@timestamp": {type: 'date', "format": "epoch_millis" },
-            "@location": {
-              "type":               "geo_point",
-              "geohash_prefix":     true,
-              "geohash_precision":  "1km"
-            }
+            "@location": {type: "geo_point"}
           },
           "dynamic_templates": [
             {

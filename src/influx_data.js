@@ -6,7 +6,15 @@ function live(server, port) {
   var client = restify.createJsonClient({ url: 'http://' + server +':' + port });
   var data = { derivative: 0 };
 
-  var influxClient = require('influx')({ port: port, host : server, username : 'grafana', password : 'grafana', database : 'site' });
+  var Influx = require('influx');
+  var influx = new Influx.InfluxDB({
+    host: server,
+    database: 'site',
+    port: port,
+    username: 'grafana',
+    password: 'grafana',
+    schema: []
+  })
 
   client.basicAuth('grafana', 'grafana');
   client.get('/query?q=' + encodeURIComponent("CREATE USER grafana WITH PASSWORD 'grafana' WITH ALL PRIVILEGES"), function(err, res) {
@@ -29,29 +37,29 @@ function live(server, port) {
     });
 
     var cq = `CREATE CONTINUOUS QUERY "1m_avg"
-                ON site
-                BEGIN
-                SELECT mean(value) as value
-                INTO "1m_avg".:measurement
-                FROM /.*/
-                GROUP BY time(1m), *
-                END`;
+      ON site
+      BEGIN
+      SELECT mean(value) as value
+      INTO "1m_avg".:measurement
+      FROM /.*/
+      GROUP BY time(1m), *
+      END`;
 
     client.get('/query?q=' + encodeURIComponent(cq), function(err, res) {
       console.log("CREATE ROLLUP CQ\n\t" + err);
     });
 
     cq = `CREATE CONTINUOUS QUERY "5m_avg"
-                ON site
-                BEGIN
-                SELECT mean(value) as value
-                INTO "5m_avg".:measurement
-                FROM /.*/
-                GROUP BY time(5m), *
-                END`
-    client.get('/query?q=' + encodeURIComponent(cq), function(err, res) {
-      console.log("CREATE ROLLUP CQ\n\t" + err);
-    });
+      ON site
+      BEGIN
+      SELECT mean(value) as value
+      INTO "5m_avg".:measurement
+      FROM /.*/
+      GROUP BY time(5m), *
+      END`
+      client.get('/query?q=' + encodeURIComponent(cq), function(err, res) {
+        console.log("CREATE ROLLUP CQ\n\t" + err);
+      });
   });
 
   function randomWalk(name, tags, start, variation) {
@@ -61,20 +69,28 @@ function live(server, port) {
 
     data[name] += (Math.random() * variation) - (variation / 2);
 
-    influxClient.writePoint(name, { value: data[name] }, tags, function(err, res) {
-      if (err) {
-        console.log("randomWalk: ", err);
+    influx.writePoints([
+      {
+        measurement: name,
+        fields: {value: data[name]},
+        tags: tags
       }
+    ]).catch(function (err) {
+      console.log("randomWalk: ", err);
     });
   }
 
   function derivativeTest() {
     data.derivative += 100;
 
-    influxClient.writePoint("derivative", { value: data.derivative }, {}, function(err, res) {
-      if (err) {
-        console.log("derivativeTest: ", err);
+    influx.writePoints([
+      {
+        measurement: 'derivative',
+        fields: {value: data.derivative},
+        tags: {}
       }
+    ]).catch(function (err) {
+      console.log("derivative: ", err);
     });
   }
 
@@ -92,10 +108,14 @@ function live(server, port) {
       "detail": "For more see <a href='http://google.com' target='_blank'>Incident Report</a>",
     };
 
-    influxClient.writePoint('logs', values, tags, function(err, res) {
-      if (err) {
-        console.log("writeLogEntry: ", err);
+    influx.writePoints([
+      {
+        measurement: 'logs',
+        fields: values,
+        tags: tags
       }
+    ]).catch(function (err) {
+      console.log("writeLogEntry: ", err);
     });
 
     setTimeout(writeLogEntry, Math.random() * 900000);
@@ -107,6 +127,8 @@ function live(server, port) {
     randomWalk('logins.count', { source: 'backend', hostname: 'server1', datacenter: "America" }, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server2', datacenter: "America"}, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server3', datacenter: "Europe"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'asd/ space/ metric', datacenter: "Europe"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'asd2\\ asd\\1', datacenter: "Europe"}, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server4', datacenter: "Europe"}, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server\\5', datacenter: "Asia"}, 100, 2);
     randomWalk('logins.count', { source: 'backend', hostname: 'server/7', datacenter: "Africa"}, 100, 2);

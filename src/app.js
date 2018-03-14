@@ -9,6 +9,7 @@ var influxData = require('./influx_data');
 var influxData08 = require('./influx_data08');
 var promData = require('./prom_data');
 var grafanaLive = require('./grafana_live');
+var sqlData = require('./sql_data');
 
 var dataDir = './data/';
 
@@ -24,8 +25,10 @@ program
   .option('--influxdb', 'Live feed data into to influxdb')
   .option('--influxdb08', 'Live feed data into to influxdb08')
   .option('--kairosdb', 'Live feed data into to kairosdb')
-  .option('--elasticsearch', 'Live feed data into to elasticsearch')
-  .option('--prom', 'Live feed data into to prometheus')
+  .option('--elasticsearch', 'Live feed data into to kairosdb')
+  .option('--prom', 'Live feed data into to kairosdb')
+  .option('--mysql', 'Live feed data into to mysql')
+  .option('--postgres', 'Live feed data into to postgresql')
   .option('--grafanaLive', 'Grafana Live Data')
   .option('-d, --days <days>', 'Days');
 
@@ -41,6 +44,14 @@ if (program.import && program.graphite) {
 
 if (program.live && program.graphite) {
   live_data(program.graphiteVersion);
+}
+
+if (program.import) {
+  import_data();
+}
+
+if (program.live) {
+  live_data();
 }
 
 if (program.opentsdb) {
@@ -69,6 +80,24 @@ if (program.kairosdb) {
 
 if (program.elasticsearch) {
   elasticData.live(program);
+}
+
+if (program.mysql) {
+  sqlData.live(program, {
+    dialect: 'mysql',
+    db: 'grafana',
+    user: 'grafana',
+    pwd: 'password'
+  });
+}
+
+if (program.postgres) {
+  sqlData.live(program, {
+    dialect: 'postgres',
+    db: 'grafana',
+    user: 'grafana',
+    pwd: 'password'
+  });
 }
 
 process.on('uncaughtException', function(err) {
@@ -253,6 +282,7 @@ function live_data(graphiteVersion) {
     } else {
       key = _.template(meta.pattern, { target: series.target });
     }
+
     metrics[key] = { points: series.datapoints };
     metrics[key].index = find_current_index(series.datapoints);
     metrics[key].secondsPerPoint = meta.secondsPerPoint;
@@ -301,7 +331,7 @@ function live_data(graphiteVersion) {
     });
   });
 
-	var client = graphite.createClient(graphiteUrl);
+  var client = graphite.createClient(graphiteUrl);
 
   setInterval(function() {
 
