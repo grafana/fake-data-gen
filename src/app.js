@@ -46,14 +46,6 @@ if (program.live && program.graphite) {
   live_data(program.graphiteVersion);
 }
 
-if (program.import) {
-  import_data();
-}
-
-if (program.live) {
-  live_data();
-}
-
 if (program.opentsdb) {
   live_opentsdb();
 }
