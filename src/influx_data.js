@@ -122,21 +122,21 @@ function live(server, port) {
   }
 
   setInterval(function() {
-    randomWalk('logins.count', { source: 'backend', hostname: '10.1.100.1', datacenter: "America" }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: '10.1.100.10', datacenter: "America" }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server1', datacenter: "America" }, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server2', datacenter: "America"}, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server3', datacenter: "Europe"}, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'asd/ space/ metric', datacenter: "Europe"}, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'asd2\\ asd\\1', datacenter: "Europe"}, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server4', datacenter: "Europe"}, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server\\5', datacenter: "Asia"}, 100, 2);
-    randomWalk('logins.count', { source: 'backend', hostname: 'server/7', datacenter: "Africa"}, 100, 2);
-    randomWalk('logins.count', { source: 'site', hostname: 'server1', datacenter: "America" }, 100, 2);
-    randomWalk('logins.count', { source: 'site', hostname: 'server2', datacenter: "America" }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server1', datacenter: "America" }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server2', datacenter: "America" }, 100, 2);
-    randomWalk('cpu', { source: 'site', hostname: 'server2', datacenter: "America" }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: '10.1.100.1', datacenter: "America", geohash: "9wvfgzurfzb" }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: '10.1.100.10', datacenter: "America", geohash: "dre33fzyxcrz" }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server1', datacenter: "America", geohash: "dr199bpvpcru" }, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server2', datacenter: "America", geohash: "9yy21uzzxypg"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server3', datacenter: "Europe", geohash: "gc6j7crvrcpf"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'asd/ space/ metric', datacenter: "Europe", geohash: "u6g9zuxvxypv"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'asd2\\ asd\\1', datacenter: "Europe", geohash: "gbsuv7ztq111"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server4', datacenter: "Europe", geohash: "gcp03b022111"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server\\5', datacenter: "Asia", geohash: "tgcpegxbpbzu"}, 100, 2);
+    randomWalk('logins.count', { source: 'backend', hostname: 'server/7', datacenter: "Africa", geohash: "kd3ezvxvxypc"}, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server1', datacenter: "America", geohash: "tz4vytepg111" }, 100, 2);
+    randomWalk('logins.count', { source: 'site', hostname: 'server2', datacenter: "America", geohash: "wjms0jyr5111" }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server1', datacenter: "America", geohash: "wj7c61wnv111" }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2', datacenter: "America", geohash: "tz6h548nc111" }, 100, 2);
+    randomWalk('cpu', { source: 'site', hostname: 'server2', datacenter: "America", geohash: "wr50zpuhj111" }, 100, 2);
     randomWalk('payment.started', { source: 'frontend', hostname: 'server2', datacenter: "America" }, 1000, 5);
     randomWalk('payment.started', { source: 'frontend', hostname: 'server1', datacenter: "America"  }, 1000, 5);
     randomWalk('payment.ended', { source: 'frontend', hostname: 'server1', datacenter: "America"  }, 1000, 5);
