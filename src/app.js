@@ -10,6 +10,7 @@ var influxData08 = require('./influx_data08');
 var promData = require('./prom_data');
 var grafanaLive = require('./grafana_live');
 var sqlData = require('./sql_data');
+var verticaData = require('./vertica_data');
 
 var dataDir = './data/';
 
@@ -30,6 +31,7 @@ program
   .option('--mysql', 'Live feed data to mysql')
   .option('--postgres', 'Live feed data to postgresql')
   .option('--mssql', 'Live feed data to mssql')
+  .option('--vertica', 'Live feed data to Vertica')
   .option('--grafanaLive', 'Grafana Live Data')
   .option('-d, --days <days>', 'Days');
 
@@ -99,6 +101,14 @@ if (program.mssql) {
     db: 'grafana',
     user: 'grafana',
     pwd: 'Password!'
+  });
+}
+
+if (program.vertica) {
+  verticaData.live(program, {
+    db: 'docker',
+    user: 'dbadmin',
+    pwd: 'dbadmin'
   });
 }
 
