@@ -29,22 +29,30 @@ function live(program, config) {
   connection.query(DROP_TABLE_QUERY, onDropTable);
 
   function onDropTable(err, result) {
-    console.log(err, result);
     if (!err) {
+      console.log("Table " + GRAFANA_TABLE + " deleted");
       connection.query(CREATE_TABLE_QUERY, onCreateTable);
+    } else {
+      console.log(err);
     }
   }
 
   function onCreateTable(err, result) {
-    console.log(err, result);
     if (!err) {
+      console.log("Table " + GRAFANA_TABLE + " created");
       runRandomWalk();
+    } else {
+      console.log(err);
     }
   }
 
   function onInsertQuery(err, result) {
-    console.log(err, result);
-    connection.query("COMMIT");
+    if (!err) {
+      console.log("Metric written");
+      connection.query("COMMIT");
+    } else {
+      console.log(err);
+    }
   }
 
   function randomWalk(metric, start, variation) {
