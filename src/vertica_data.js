@@ -1,6 +1,8 @@
 var vertica = require('vertica');
 
-var CREATE_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS grafana_metric (" +
+var GRAFANA_TABLE = "grafana_metric";
+var DROP_TABLE_QUERY = "DROP TABLE IF EXISTS " + GRAFANA_TABLE;
+var CREATE_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS " + GRAFANA_TABLE + "(" +
   "measurement VARCHAR(64), " +
   "source VARCHAR(64), " +
   "hostname VARCHAR(64), " +
@@ -11,6 +13,7 @@ var CREATE_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS grafana_metric (" +
 
 function live(program, config) {
   console.log('connecting to ' + program.server + ' : ' + program.port);
+  var data = {};
 
   var verticaConfig = {
     host: program.server,
@@ -23,16 +26,26 @@ function live(program, config) {
 
   var connection = vertica.connect(verticaConfig);
 
+  connection.query(DROP_TABLE_QUERY, onDropTable);
+
+  function onDropTable(err, result) {
+    console.log(err, result);
+    if (!err) {
+      connection.query(CREATE_TABLE_QUERY, onCreateTable);
+    }
+  }
 
   function onCreateTable(err, result) {
     console.log(err, result);
-
     if (!err) {
       runRandomWalk();
     }
   }
 
-  var data = {};
+  function onInsertQuery(err, result) {
+    console.log(err, result);
+    connection.query("COMMIT");
+  }
 
   function randomWalk(metric, start, variation) {
     if (!data[metric.measurement]) {
@@ -44,7 +57,7 @@ function live(program, config) {
     metric.createdAt = timestamp.toISOString().replace('T', ' ').replace('Z', '');
     metric.value = data[metric.measurement];
 
-    insert_query = "INSERT INTO grafana_metric (measurement, source, hostname, datacenter, createdAt, value) VALUES (" +
+    insert_query = "INSERT INTO " + GRAFANA_TABLE + " (measurement, source, hostname, datacenter, createdAt, value) VALUES (" +
     "'" + metric.measurement + "', " +
     "'" + metric.source + "', " +
     "'" + metric.hostname + "', " +
@@ -52,14 +65,8 @@ function live(program, config) {
     "'" + metric.createdAt + "', " +
     metric.value +
     ")";
-    console.log(insert_query);
 
     connection.query(insert_query, onInsertQuery);
-  }
-
-  function onInsertQuery(err, result) {
-    console.log(err, result);
-    connection.query("COMMIT");
   }
 
   function runRandomWalk() {
@@ -85,8 +92,6 @@ function live(program, config) {
       randomWalk({ measurement: 'payment.ended', source: 'frontend', hostname: 'server1', datacenter: "America"  }, 1000, 5);
     }, 10000);
   }
-
-  var createTableRes = connection.query(CREATE_TABLE_QUERY, onCreateTable);
 }
 
 module.exports = {
