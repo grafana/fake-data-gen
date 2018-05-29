@@ -5,6 +5,7 @@ var path = require('path');
 var _ = require('lodash');
 var pkg = require('./package.json');
 var elasticData = require('./elastic_data');
+var elasticData6 = require('./elastic_data6');
 var influxData = require('./influx_data');
 var influxData08 = require('./influx_data08');
 var promData = require('./prom_data');
@@ -26,8 +27,9 @@ program
   .option('--influxdb', 'Live feed data to influxdb')
   .option('--influxdb08', 'Live feed data to influxdb08')
   .option('--kairosdb', 'Live feed data to kairosdb')
-  .option('--elasticsearch', 'Live feed data to kairosdb')
-  .option('--prom', 'Live feed data to kairosdb')
+  .option('--elasticsearch', 'Live feed data to elasticsearch')
+  .option('--elasticsearch6', 'Live feed data to elasticsearch 6.x')
+  .option('--prom', 'Live feed data to prometheus')
   .option('--mysql', 'Live feed data to mysql')
   .option('--postgres', 'Live feed data to postgresql')
   .option('--mssql', 'Live feed data to mssql')
@@ -75,6 +77,10 @@ if (program.kairosdb) {
 
 if (program.elasticsearch) {
   elasticData.live(program);
+}
+
+if (program.elasticsearch6) {
+  elasticData6.live(program);
 }
 
 if (program.mysql) {
