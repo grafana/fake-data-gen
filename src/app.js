@@ -12,6 +12,7 @@ var promData = require('./prom_data');
 var grafanaLive = require('./grafana_live');
 var sqlData = require('./sql_data');
 var verticaData = require('./vertica_data');
+var newrelicData = require('./newrelic_data');
 
 var dataDir = './data/';
 
@@ -34,6 +35,9 @@ program
   .option('--postgres', 'Live feed data to postgresql')
   .option('--mssql', 'Live feed data to mssql')
   .option('--vertica', 'Live feed data to Vertica')
+  .option('--newrelic', 'Live feed data to New Relic')
+  .option('--apiKey <apiKey>', 'New Relic Insights API key')
+  .option('--accountId <accountId>', 'New Relic account ID')
   .option('--grafanaLive', 'Grafana Live Data')
   .option('-d, --days <days>', 'Days');
 
@@ -116,6 +120,10 @@ if (program.vertica) {
     user: 'dbadmin',
     pwd: 'dbadmin'
   });
+}
+
+if (program.newrelic) {
+  newrelicData.live(program);
 }
 
 process.on('uncaughtException', function(err) {
