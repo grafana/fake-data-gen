@@ -13,6 +13,7 @@ var grafanaLive = require('./grafana_live');
 var sqlData = require('./sql_data');
 var verticaData = require('./vertica_data');
 var newrelicData = require('./newrelic_data');
+var datadogData = require('./datadog');
 
 var dataDir = './data/';
 
@@ -38,6 +39,8 @@ program
   .option('--newrelic', 'Live feed data to New Relic')
   .option('--apiKey <apiKey>', 'New Relic Insights API key')
   .option('--accountId <accountId>', 'New Relic account ID')
+  .option('--datadog', 'Live feed data to Datadog')
+  .option('--appKey <appKey>', 'Datadog application key')
   .option('--grafanaLive', 'Grafana Live Data')
   .option('-d, --days <days>', 'Days');
 
@@ -124,6 +127,10 @@ if (program.vertica) {
 
 if (program.newrelic) {
   newrelicData.live(program);
+}
+
+if (program.datadog) {
+  datadogData.live(program);
 }
 
 process.on('uncaughtException', function(err) {
