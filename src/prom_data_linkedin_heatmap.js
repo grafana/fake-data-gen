@@ -30,9 +30,9 @@ function getLabels(base, number, missingLinkRatio) {
   return labels;
 }
 
-function live(labelsNum) {
+function live(labelsNum, missingLinkRatio) {
   var client = new Prometheus();
-  const test_label_sets = getLabels('switch', labelsNum || 100, 0.3);
+  const test_label_sets = getLabels('switch', labelsNum || 100, missingLinkRatio || 0.3);
   console.log('Starting to feed data');
 
   var packets = client.newCounter({

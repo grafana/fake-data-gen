@@ -11,6 +11,7 @@ echo $hostip
 : "${FD_NR_API_KEY:=""}"
 : "${FD_NR_ACCOUNT_ID:=""}"
 : "${FD_HEATMAP_LABELS_NUM:=""}"
+: "${FD_HEATMAP_MISSING_LINK_RATIO:=""}"
 : "${FD_NODE_MEMORY_SIZE:=""}"
 
 echo $FD_DATASOURCE
@@ -28,6 +29,9 @@ if [ "$FD_DATASOURCE" = "newrelic" ]; then
 fi
 if [ "$FD_DATASOURCE" = "promLinkedinHeatmap" ]; then
   params="$params --linkedinHeatmapLabelsNum ${FD_HEATMAP_LABELS_NUM}"
+fi
+if [ ! -z "${FD_HEATMAP_MISSING_LINK_RATIO}" ]; then
+  params="$params --linkedinMissingLinkRatio ${FD_HEATMAP_MISSING_LINK_RATIO}"
 fi
 echo $params
 

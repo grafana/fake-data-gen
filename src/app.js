@@ -34,6 +34,7 @@ program
   .option('--prom', 'Live feed data to prometheus')
   .option('--promLinkedinHeatmap', 'Live feed data to prometheus')
   .option('--linkedinHeatmapLabelsNum <linkedinHeatmapLabelsNum>', 'Number of labels in one dimension')
+  .option('--linkedinMissingLinkRatio <linkedinMissingLinkRatio>', 'How many links between switches are not exist')
   .option('--mysql', 'Live feed data to mysql')
   .option('--postgres', 'Live feed data to postgresql')
   .option('--mssql', 'Live feed data to mssql')
@@ -67,7 +68,7 @@ if (program.prom) {
 }
 
 if (program.promLinkedinHeatmap) {
-  promDataLinkedIn.live(program.linkedinHeatmapLabelsNum);
+  promDataLinkedIn.live(program.linkedinHeatmapLabelsNum, program.linkedinMissingLinkRatio);
 }
 
 if (program.grafanaLive) {
