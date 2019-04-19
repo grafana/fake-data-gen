@@ -1,5 +1,5 @@
 #/bin/sh
-VERSION=v5
+VERSION=v6
 
 docker build -t grafana/fake-data-gen:latest -t grafana/fake-data-gen:$VERSION --no-cache=true .
 
