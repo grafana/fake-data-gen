@@ -31,6 +31,19 @@ var ES_METRICS_TEMPLATE = {
   }
 };
 
+var ES_LOGS_TEMPLATE = {
+  "template" : "logs-*",
+  "settings" : { "number_of_shards" : 1, "number_of_replicas": 0 },
+  "mappings" : {
+    "logs" : {
+      "_source": {"enabled": true},
+      "properties": {
+        "@timestamp": {"type": 'date', "format": "epoch_millis"},
+      }
+    }
+  }
+};
+
 function liveFeedToLogstash(program) {
   console.log('Starting Elasticsearch Data Sender');
 
@@ -65,8 +78,14 @@ function liveFeedToLogstash(program) {
       if (err) {
         console.log('template mapping error:', err);
       } else {
-        console.log('template created');
-        feedDataCallback();
+        client.put('/_template/logs', ES_LOGS_TEMPLATE, function(err, req, res, obj) {
+          if (err) {
+            console.log('template mapping error:', err);
+          } else {
+            console.log('templates created');
+            feedDataCallback();
+          }
+        });
       }
     });
   }
@@ -179,7 +198,7 @@ function liveFeedToLogstash(program) {
 
     var writeLogEntryID = setInterval(function() {
       writeLogEntry(recoveryCallback);
-    }, Math.random() * 900000);
+    }, Math.random() * 50000);
 
     var recoveryCallback = _.once(recoveryAction);
     function recoveryAction() {
