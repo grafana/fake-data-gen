@@ -7,6 +7,7 @@ var pkg = require('./package.json');
 var elasticData = require('./elastic_data');
 var elasticData6 = require('./elastic_data6');
 var elasticData7 = require('./elastic_data7');
+var elasticData8 = require('./elastic_data8');
 var influxData = require('./influx_data');
 var influxData08 = require('./influx_data08');
 var promData = require('./prom_data');
@@ -32,6 +33,7 @@ program
   .option('--elasticsearch', 'Live feed data to elasticsearch')
   .option('--elasticsearch6', 'Live feed data to elasticsearch 6.x')
   .option('--elasticsearch7', 'Live feed data to elasticsearch 7.x')
+  .option('--elasticsearch8', 'Live feed data to elasticsearch 8.x')
   .option('--prom', 'Live feed data to prometheus')
   .option('--mysql', 'Live feed data to mysql')
   .option('--postgres', 'Live feed data to postgresql')
@@ -91,6 +93,10 @@ if (program.elasticsearch6) {
 
 if (program.elasticsearch7) {
   elasticData7.live(program);
+}
+
+if (program.elasticsearch8) {
+  elasticData8.live(program);
 }
 
 if (program.mysql) {
