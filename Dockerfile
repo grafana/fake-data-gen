@@ -1,6 +1,4 @@
-FROM node:6.6.0
-
-RUN cd $(npm root -g)/npm && npm install fs-extra && sed -i -e s/graceful-fs/fs-extra/ -e s/fs.rename/fs.move/ ./lib/utils/rename.js
+FROM node:17.9-alpine
 
 COPY ./src /usr/src/fake-data-gen
 WORKDIR /usr/src/fake-data-gen
