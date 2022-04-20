@@ -24,7 +24,13 @@ steps:
     path: /var/run/docker.sock
 - commands:
   - apk add make
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
   - make push
+  environment:
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+    DOCKER_USERNAME:
+      from_secret: docker_username
   image: docker:20-git
   name: push
   volumes:
@@ -49,6 +55,6 @@ volumes:
   name: docker
 ---
 kind: signature
-hmac: a38055d18e4ea5dcdb9535e02ed24be6ccb22c4a187ea34d86ab28e805b76c01
+hmac: 0e23797d5e26243e1fcd248dcf0f6881f64829a2b0e61b09e7eada2cd34d3f11
 
 ...

@@ -49,11 +49,16 @@ local docker_password_secret = secret('docker_password', 'infra/data/ci/docker_h
       ]),
       step('push', 'docker:20-git', [
         'apk add make',
+        'docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"',
         'make push',
       ]) {
         when: {
           event: ['push'],
           branch: ['master', 'main'],
+        },
+        environment: {
+          DOCKER_USERNAME: { from_secret: 'docker_username' },
+          DOCKER_PASSWORD: { from_secret: 'docker_password' },
         },
       },
     ],
