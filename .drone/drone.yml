@@ -1,0 +1,54 @@
+---
+get:
+  name: username
+  path: infra/data/ci/docker_hub
+kind: secret
+name: docker_username
+---
+get:
+  name: password
+  path: infra/data/ci/docker_hub
+kind: secret
+name: docker_password
+---
+kind: pipeline
+name: build
+steps:
+- commands:
+  - apk add make
+  - make build
+  image: docker:20-git
+  name: build
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
+  - apk add make
+  - make push
+  image: docker:20-git
+  name: push
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    branch:
+    - master
+    - main
+    event:
+    - push
+trigger:
+  branch:
+  - master
+  - main
+  event:
+  - push
+  - pull_request
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: signature
+hmac: a38055d18e4ea5dcdb9535e02ed24be6ccb22c4a187ea34d86ab28e805b76c01
+
+...
