@@ -5,6 +5,7 @@ let totalCardinalityLimit = 0;
 function live() {
   var client = new Prometheus();
 
+
   var logins = client.newCounter({
     namespace: "counters",
     name: "logins",
@@ -51,19 +52,19 @@ function live() {
     randomWalk({server: "webserver.03", app: "frontend", geohash: "u6g9zuxvxypv"}, 2);
 
     // To test metrics with many labels
-    // makeid(2) can create up to 1296 (36chars^2) labels/series for each webserver, giving us max of 12.9k series generated, but sparsely populated, to not consume all memory in prometheus
-    for (let i = 0; i < 100; i++) {
+    // makeid(2) can create up to 1296 (36chars^2) labels/series for each webserver, giving us max of 12.9k series generated, but sparsely updated over time, to not consume all memory in prometheus
+    for (let i = 0; i < 250; i++) {
       randomWalk({server: `webserver.${i}`, app: "frontend", geohash: makeid(2)}, 2);
       totalCardinalityLimit++
     }
 
-    // This will create a bunch of random metrics
-    for (let i = 0; i < 100; i++) {
+    // This will create a bunch of random metrics, but they will only ever have a single value as the prometheus client throws an error when trying to instantiate a new counter that shares a name with an existing metric
+    for (let i = 0; i < 250; i++) {
       randomMetric({server: `webserver_random`, app: "random", geohash: 'v4t5bjbqzypz'}, 2);
       totalCardinalityLimit++
     }
 
-    // 1 million max limit
+    // 1 million max limit, this has issues because it resets if the server goes down and we populate another ~100k metrics
     if(totalCardinalityLimit > 100000) {
       console.warn('Hit max cardinality limit!')
       clearInterval(interval)
