@@ -1,6 +1,7 @@
 .PHONY: build push push-dev drone
 
 IMAGE_NAME=grafana/fake-data-gen
+PLATFORMS=linux/amd64,linux/arm64
 
 ifeq (${CI}, true)
   VERSION_PREFIX=
@@ -10,7 +11,7 @@ endif
 VERSION=${VERSION_PREFIX}$(shell git rev-parse --short HEAD)
 
 build:
-	docker build -t ${IMAGE_NAME}:latest .
+	docker buildx build --platform ${PLATFORMS} -t ${IMAGE_NAME}:latest .
 	docker tag grafana/fake-data-gen:latest grafana/fake-data-gen:${VERSION}
 
 push-dev: build
