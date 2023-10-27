@@ -1,28 +1,28 @@
 var _ = require('lodash');
 var Prometheus = require("prometheus-client");
+var NewClient = require("prom-client")
 
 function live() {
   var client = new Prometheus();
 
-  var logins = client.newCounter({
-    namespace: "counters",
+  let loginsClient = new NewClient.Counter({
+    labelNames: ['server', 'app', 'geohash'],
     name: "logins",
-    help: "Counters"
-  });
+    help: "Counters",
+  })
 
-  var requests = client.newCounter({
-    namespace: "counters",
+  let requestsCounter = new NewClient.Counter({
     name: "requests",
-    help: "Counters"
+    help: "Counters",
+    labelNames: ['server', 'app', 'geohash'],
   });
-
 
   client.listen(9091);
-  var data = {};
 
   function randomWalk(labels, variation) {
-    logins.increment(labels, (Math.random() * variation) - (variation / 2));
-    requests.increment(labels, 100 + (Math.random() * 10));
+    loginsClient.labels(labels).inc(variation);
+    // logins.increment(labels, (Math.random() * variation) - (variation / 2));
+    requestsCounter.labels(labels).inc(100 + (Math.random() * 10));
   }
 
   setInterval(function() {
