@@ -1,40 +1,118 @@
-var _ = require('lodash');
-var Prometheus = require("prometheus-client");
-var NewClient = require("prom-client")
+var client = require("prom-client")
+const express = require('express');
+const cluster = require('cluster');
+const server = express();
+const register = client.register;
 
-function live() {
-  var client = new Prometheus();
+// Enable collection of default metrics
 
-  let loginsClient = new NewClient.Counter({
-    labelNames: ['server', 'app', 'geohash'],
-    name: "logins",
-    help: "Counters",
-  })
+client.collectDefaultMetrics({
+  gcDurationBuckets: [0.001, 0.01, 0.1, 1, 2, 5], // These are the default buckets.
+});
 
-  let requestsCounter = new NewClient.Counter({
-    name: "requests",
-    help: "Counters",
-    labelNames: ['server', 'app', 'geohash'],
-  });
+// Create custom metrics
 
-  client.listen(9091);
+const Histogram = client.Histogram;
+const h = new Histogram({
+  name: 'test_histogram',
+  help: 'Example of a histogram',
+  labelNames: ['code'],
+});
 
-  function randomWalk(labels, variation) {
-    loginsClient.labels(labels).inc(variation);
-    // logins.increment(labels, (Math.random() * variation) - (variation / 2));
-    requestsCounter.labels(labels).inc(100 + (Math.random() * 10));
-  }
+const Counter = client.Counter;
+const c = new Counter({
+  name: 'test_counter',
+  help: 'Example of a counter',
+  labelNames: ['code'],
+});
 
-  setInterval(function() {
-    randomWalk({server: "backend-01", app: "backend", geohash: "9wvfgzurfzb"}, 2);
-    randomWalk({server: "backend-02", app: "backend", geohash: "dre33fzyxcrz"}, 2);
-    randomWalk({server: "webserver-01", app: "frontend", geohash: "dr199bpvpcru"}, 2);
-    randomWalk({server: "webserver-02", app: "frontend", geohash: "9yy21uzzxypg"}, 2);
-    randomWalk({server: "webserver_03", app: "frontend", geohash: "gc6j7crvrcpf"}, 2);
-    randomWalk({server: "webserver.03", app: "frontend", geohash: "u6g9zuxvxypv"}, 2);
-  }, 10000);
+new Counter({
+  name: 'scrape_counter',
+  help: 'Number of scrapes (example of a counter with a collect fn)',
+  collect() {
+    // collect is invoked each time `register.metrics()` is called.
+    this.inc();
+  },
+});
+
+const Gauge = client.Gauge;
+const g = new Gauge({
+  name: 'test_gauge',
+  help: 'Example of a gauge',
+  labelNames: ['method', 'code'],
+});
+
+// Set metric values to some random values for demonstration
+
+setTimeout(() => {
+  h.labels('200').observe(Math.random());
+  h.labels('300').observe(Math.random());
+}, 10);
+
+setInterval(() => {
+  c.inc({ code: 200 });
+}, 5000);
+
+setInterval(() => {
+  c.inc({ code: 400 });
+}, 2000);
+
+setInterval(() => {
+  c.inc();
+}, 2000);
+
+setInterval(() => {
+  g.set({ method: 'get', code: 200 }, Math.random());
+  g.set(Math.random());
+  g.labels('post', '300').inc();
+}, 100);
+
+if (cluster.isWorker) {
+  // Expose some worker-specific metric as an example
+  setInterval(() => {
+    c.inc({ code: `worker_${cluster.worker.id}` });
+  }, 2000);
 }
 
+const t = [];
+setInterval(() => {
+  for (let i = 0; i < 100; i++) {
+    t.push(new Date());
+  }
+}, 10);
+setInterval(() => {
+  while (t.length > 0) {
+    t.pop();
+  }
+});
+
+// Setup server to Prometheus scrapes:
+server.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (ex) {
+    res.status(500).end(ex);
+  }
+});
+
+server.get('/metrics/counter', async (req, res) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.getSingleMetricAsString('test_counter'));
+  } catch (ex) {
+    res.status(500).end(ex);
+  }
+});
+
+// Hardcoded to 9091 since that is the port gdev-prom is using to scrape
+const port = 9091;
+
 module.exports = {
-  live: live
+  live: () => {
+    console.log(
+        `Server listening to ${port}, metrics exposed on /metrics endpoint`,
+    );
+    server.listen(port);
+  }
 };
