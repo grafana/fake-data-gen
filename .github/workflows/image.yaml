@@ -1,0 +1,32 @@
+name: Publish grafana/fake-data-gen image
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: ${{ github.repository == 'grafana/fake-data-gen' }}
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - id: push-to-dockerhub
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@bfbcd01788fe3d09fb1de307529afe2c111cbc64 # build-push-to-dockerhub-v0.1.1
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          repository: grafana/fake-data-gen
+          tags: |-
+            ${{ github.sha }}
+            latest
