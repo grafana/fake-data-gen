@@ -17,7 +17,7 @@
     "moment": "^2.10.6",
     "mysql2": "^3.0.0",
     "nopents": "^0.1.4",
-    "opentsdb": "^0.1.0",
+    "opentsdb": "^0.5.0",
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.2",
     "prometheus-client": "^0.1.1",
