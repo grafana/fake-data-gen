@@ -1,4 +1,4 @@
-FROM node:22-alpine@sha256:b2358485e3e33bc3a33114d2b1bdb18cdbe4df01bd2b257198eb51beb1f026c5
+FROM node:22-alpine@sha256:8ea2348b068a9544dae7317b4f3aafcdc032df1647bb7d768a05a5cad1a7683f
 
 COPY ./src /usr/src/fake-data-gen
 WORKDIR /usr/src/fake-data-gen
