@@ -165,10 +165,10 @@ function import_data(graphiteVersion) {
     var key;
     if (graphiteVersion === '1.1') {
       // Convert to tagged format
-      key = _.template(meta.pattern, { target: "" }).replace("..", ".");
+      key = _.template(meta.pattern)({ target: "" }).replace("..", ".");
       key += ";target=" + series.target;
     } else {
-      key = _.template(meta.pattern, { target: series.target });
+      key = _.template(meta.pattern)({ target: series.target });
     }
     var index = find_current_index(series.datapoints);
     var currentDate = new Date();
@@ -309,10 +309,10 @@ function live_data(graphiteVersion) {
     var key;
     if (graphiteVersion === '1.1') {
       // Convert to tagged format
-      key = _.template(meta.pattern, { target: "" }).replace("..", ".");
+      key = _.template(meta.pattern)({ target: "" }).replace("..", ".");
       key += ";target=" + series.target;
     } else {
-      key = _.template(meta.pattern, { target: series.target });
+      key = _.template(meta.pattern)({ target: series.target });
     }
 
     metrics[key] = { points: series.datapoints };
