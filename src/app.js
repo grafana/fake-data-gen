@@ -163,8 +163,8 @@ function import_data(graphiteVersion) {
     var now = new Date();
 
     var key;
-    if (graphiteVersion === '1.1') {
-      // Convert to tagged format
+    if (graphiteVersion === '1.1' && meta.pattern.indexOf(';') === -1) {
+      // Convert dotted-path metric to tagged format
       key = _.template(meta.pattern)({ target: "" }).replace("..", ".");
       key += ";target=" + series.target;
     } else {
@@ -307,8 +307,8 @@ function live_data(graphiteVersion) {
 
   function live_feed(meta, series) {
     var key;
-    if (graphiteVersion === '1.1') {
-      // Convert to tagged format
+    if (graphiteVersion === '1.1' && meta.pattern.indexOf(';') === -1) {
+      // Convert dotted-path metric to tagged format
       key = _.template(meta.pattern)({ target: "" }).replace("..", ".");
       key += ";target=" + series.target;
     } else {
