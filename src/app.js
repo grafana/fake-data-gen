@@ -10,6 +10,7 @@ var elasticData7 = require('./elastic_data7');
 var influxData = require('./influx_data');
 var influxData08 = require('./influx_data08');
 var promData = require('./prom_data');
+var promDataLinkedIn = require('./prom_data_linkedin_heatmap');
 var grafanaLive = require('./grafana_live');
 var sqlData = require('./sql_data');
 var verticaData = require('./vertica_data');
@@ -33,6 +34,9 @@ program
   .option('--elasticsearch6', 'Live feed data to elasticsearch 6.x')
   .option('--elasticsearch7', 'Live feed data to elasticsearch 7.x')
   .option('--prom', 'Live feed data to prometheus')
+  .option('--promLinkedinHeatmap', 'Live feed data to prometheus')
+  .option('--linkedinHeatmapLabelsNum <linkedinHeatmapLabelsNum>', 'Number of labels in one dimension')
+  .option('--linkedinMissingLinkRatio <linkedinMissingLinkRatio>', 'How many links between switches are not exist')
   .option('--mysql', 'Live feed data to mysql')
   .option('--postgres', 'Live feed data to postgresql')
   .option('--mssql', 'Live feed data to mssql')
@@ -63,6 +67,10 @@ if (program.opentsdb) {
 
 if (program.prom) {
   promData.live();
+}
+
+if (program.promLinkedinHeatmap) {
+  promDataLinkedIn.live(program.linkedinHeatmapLabelsNum, program.linkedinMissingLinkRatio);
 }
 
 if (program.grafanaLive) {
